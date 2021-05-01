@@ -1,21 +1,28 @@
 package labCoin;
 import Helper.*;
+import Transaction.Transaction;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class Block {
     private int index;
     private String timestamp;
-    private int asset;
+
     private String hash;
     private String preHash;
     private int difficulty;
     private int nonce;
+    private String merkleRoot;
+
+    private transient List<Transaction> transactionList = new ArrayList<>();
 
     public Block(int difficulty) {
         this.difficulty = difficulty;
     }
+
+    public Block() { }
 
     /***
      * https://mkyong.com/java/how-to-get-current-timestamps-in-java/#java-timestamp-examples
@@ -50,6 +57,7 @@ public class Block {
     }
 
     public String blockMining(){
+        this.merkleRoot = Helper.getMerkleroot(this.transactionList);
         String targetHash = Helper.getDificultyTarget(difficulty);
         this.hash = calculateNewHash(this);
         while(!this.hash.substring(0,difficulty).equals(targetHash)){
@@ -71,6 +79,14 @@ public class Block {
 
 
 
+    //************************************************************************
+    // Transaction operation
+    //************************************************************************
+
+
+    public static boolean appendTransaction(Transaction transaction){
+
+    }
 
 
 
@@ -92,14 +108,6 @@ public class Block {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public int getAsset() {
-        return asset;
-    }
-
-    public void setAsset(int asset) {
-        this.asset = asset;
     }
 
     public String getHash() {
