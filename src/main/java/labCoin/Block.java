@@ -1,10 +1,12 @@
 package labCoin;
 import Helper.*;
-import Transaction.Transaction;
+import Transaction.*;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Block {
     private int index;
@@ -17,6 +19,8 @@ public class Block {
     private String merkleRoot;
 
     private transient List<Transaction> transactionList = new ArrayList<>();
+
+    private static final Logger LOGGER = Logger.getLogger(Block.class.getName());
 
     public Block(int difficulty) {
         this.difficulty = difficulty;
@@ -84,8 +88,26 @@ public class Block {
     //************************************************************************
 
 
-    public static boolean appendTransaction(Transaction transaction){
+    public boolean appendTransaction(Transaction tx){
+        if(tx==null){
+            return false;
+        }
 
+        if(this.preHash.equals("0")){
+            LOGGER.info("the first block");
+            this.transactionList.add(tx);
+            return true;
+        }
+        else{
+            boolean addSuccess = tx.forwardTransaction();
+            if(!addSuccess){
+                System.out.println("appendTransaction error");
+                LOGGER.info("appendTransaction error");
+                return false;
+            }
+            this.transactionList.add(tx);
+            return false;
+        }
     }
 
 
@@ -140,5 +162,13 @@ public class Block {
 
     public void setNouce(int nonce) {
         this.nonce = nonce;
+    }
+
+    public String getMerkleRoot() {
+        return merkleRoot;
+    }
+
+    public List<Transaction> getTransactionList() {
+        return (List<Transaction>) transactionList;
     }
 }

@@ -15,7 +15,7 @@ public class LabCoin {
     private static List<Block> localBlockChain = new ArrayList<Block>();
     private static Block blockToPack = new Block();
     public static Map<String, OutputTransaction> UTXOMap = new HashMap<>();
-
+    public static int difficulty = 2;
 
     private static final Logger LOGGER = Logger.getLogger(LabCoin.class.getName());
 

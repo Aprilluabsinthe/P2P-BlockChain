@@ -28,7 +28,7 @@ public class Transaction {
 		this.inputs = inputs;
 	}
 	
-	public boolean operateTransaction() {
+	public boolean forwardTransaction() {
 		if(verifySignature() == false) {
 			System.out.println("#Transaction Signature failed to verify");
 			return false;

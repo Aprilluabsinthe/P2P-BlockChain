@@ -17,4 +17,8 @@ public class OutputTransaction {
         String digest =  Helper.keyToString(recipient) + value + parentId;
         this.outputId = Helper.getHexSha256(digest);
     }
+
+    public boolean coinIsMine(PublicKey PublicKey){
+        return PublicKey.equals(recipient);
+    }
 }
