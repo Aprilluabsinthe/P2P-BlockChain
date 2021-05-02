@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class Block {
+    public final static String SEPARATOR = ",";
+    public final static String BLOCK_SEPARATOR = ";";
     private int index;
     private String timestamp;
 
@@ -27,6 +29,17 @@ public class Block {
     }
 
     public Block() { }
+
+    public Block(int index, String timestamp, String hash, String preHash, int difficulty, int nonce, String merkleRoot, List<Transaction> transactionList) {
+        this.index = index;
+        this.timestamp = timestamp;
+        this.hash = hash;
+        this.preHash = preHash;
+        this.difficulty = difficulty;
+        this.nonce = nonce;
+        this.merkleRoot = merkleRoot;
+        this.transactionList = transactionList;
+    }
 
     /***
      * https://mkyong.com/java/how-to-get-current-timestamps-in-java/#java-timestamp-examples
@@ -171,4 +184,19 @@ public class Block {
     public List<Transaction> getTransactionList() {
         return (List<Transaction>) transactionList;
     }
+
+    @Override
+    public String toString() {
+        return "Block{" +
+                "index=" + index +
+                ", timestamp='" + timestamp + '\'' +
+                ", hash='" + hash + '\'' +
+                ", preHash='" + preHash + '\'' +
+                ", difficulty=" + difficulty +
+                ", nonce=" + nonce +
+                ", merkleRoot='" + merkleRoot + '\'' +
+                ", transactionList=" + transactionList +
+                '}';
+    }
+
 }

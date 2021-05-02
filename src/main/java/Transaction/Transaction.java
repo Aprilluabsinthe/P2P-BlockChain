@@ -5,6 +5,7 @@ import labCoin.LabCoin;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Transaction {
@@ -106,5 +107,18 @@ public class Transaction {
 		sequence++; //increase the sequence to avoid 2 identical transactions having the same hash
 		String newContent = contentToBeSigned() + sequence;
 		return Helper.getHexSha256(newContent);
+	}
+
+	@Override
+	public String toString() {
+		return "Transaction{" +
+				"transactionId='" + transactionId + '\'' +
+				", sender=" + sender +
+				", reciepient=" + reciepient +
+				", value=" + value +
+				", signature=" + Arrays.toString(signature) +
+				", inputs=" + inputs +
+				", outputs=" + outputs +
+				'}';
 	}
 }

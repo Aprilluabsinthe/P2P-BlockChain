@@ -2,6 +2,7 @@ package labCoin;
 
 // logging
 import Transaction.OutputTransaction;
+import Transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +16,9 @@ public class LabCoin {
     private static List<Block> localBlockChain = new ArrayList<Block>();
     private static Block blockToPack = new Block();
     public static Map<String, OutputTransaction> UTXOMap = new HashMap<>();
-    public static int difficulty = 2;
+    public static int difficulty = 5;
+    public static coinWallet wallet;
+    public static Transaction genesisTransaction;
 
     private static final Logger LOGGER = Logger.getLogger(LabCoin.class.getName());
 
