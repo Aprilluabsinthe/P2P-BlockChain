@@ -1,6 +1,8 @@
 package Transaction;
 import Helper.Helper;
-import labCoin.LabCoin;
+import LabCoin.LabCoin;
+import basic.trial;
+import com.google.gson.Gson;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -95,13 +97,6 @@ public class Transaction {
 		return insum;
 	}
 
-	public float outputValueSum() {
-		float outSum = 0;
-		for(OutputTransaction out : outputs) {
-			outSum += out.value;
-		}
-		return outSum;
-	}
 	
 	private String identicalHash() {
 		sequence++; //increase the sequence to avoid 2 identical transactions having the same hash
@@ -111,14 +106,57 @@ public class Transaction {
 
 	@Override
 	public String toString() {
-		return "Transaction{" +
-				"transactionId='" + transactionId + '\'' +
-				", sender=" + sender +
-				", reciepient=" + reciepient +
-				", value=" + value +
-				", signature=" + Arrays.toString(signature) +
-				", inputs=" + inputs +
-				", outputs=" + outputs +
-				'}';
+		try {
+			return toJson();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return "OUTPUT TO STRING ERROR";
+	}
+
+	public class tranData{
+		public byte[] tranSender;
+		public byte[] tranReciepient;
+		public float tranValue;
+		public List<String> tranInputs = new ArrayList<String>();
+
+		public tranData() {
+			this.tranSender = sender.getEncoded();
+			this.tranReciepient = reciepient.getEncoded();
+			this.tranValue = value;
+			for(InputTransaction input : inputs){
+				this.tranInputs.add(input.toString());
+			}
+		}
+	}
+
+	public String toJson() throws CloneNotSupportedException {
+		tranData copy = new tranData();
+		Gson gson = new Gson();
+		String json = gson.toJson(copy);
+		return json;
+	}
+
+	public static Transaction fromString(String json){
+		Gson gson = new Gson();
+		tranData obj = gson.fromJson(json, tranData.class);
+		PublicKey sender = null;
+		PublicKey reciepient = null;
+		try {
+			sender = Helper.genEcPubKey(obj.tranSender);
+			reciepient = Helper.genEcPubKey(obj.tranReciepient);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		float value = obj.tranValue;
+		List<String> inputs = obj.tranInputs;
+
+		List<InputTransaction> inputTXs = new ArrayList<>();
+		for(String input : inputs){
+			InputTransaction inTX = InputTransaction.fromString(input);
+			inputTXs.add(inTX);
+		}
+
+		return new Transaction(sender,reciepient,value,inputTXs);
 	}
 }

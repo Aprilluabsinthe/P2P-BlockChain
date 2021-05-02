@@ -1,5 +1,6 @@
-package labCoin;
+package LabCoin;
 
+import LabCoin.LabCoin;
 import Transaction.OutputTransaction;
 import Transaction.InputTransaction;
 import Transaction.Transaction;

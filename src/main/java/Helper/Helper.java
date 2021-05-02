@@ -1,10 +1,11 @@
 package Helper;
 import java.security.*;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.logging.Logger;
 
 import Transaction.Transaction;
-import labCoin.LabCoin;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -129,4 +130,31 @@ public class Helper {
     public static boolean possiblyUnderRoot(Transaction tx, String merkleRoot ){
         return merkleRoot.contains(tx.transactionId);
     }
+
+    public static KeyPair generateKey(){
+        try{
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+            KeyPairGenerator keysGenerator = KeyPairGenerator.getInstance("ECDSA","BC");
+            SecureRandom r1 = SecureRandom.getInstance("SHA1PRNG");
+            ECGenParameterSpec ecGen = new ECGenParameterSpec("secp256k1");
+            keysGenerator.initialize(ecGen,r1);
+            KeyPair keyPair = keysGenerator.generateKeyPair();
+            return keyPair;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static PublicKey genEcPubKey(byte[] bytePubKey) throws Exception {
+        KeyFactory factory = KeyFactory.getInstance("ECDSA", "BC");
+        java.security.PublicKey ecPublicKey = (PublicKey) factory
+                .generatePublic(new X509EncodedKeySpec(bytePubKey)); // Helper.toByte(ecRemotePubKey)) is java.security.PublicKey#getEncoded()
+        return (PublicKey) ecPublicKey;
+    }
+
 }

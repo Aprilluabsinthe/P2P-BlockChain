@@ -1,14 +1,14 @@
-package labCoin;
+package LabCoin;
 
 // logging
 import Transaction.OutputTransaction;
 import Transaction.Transaction;
+import basic.Block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LabCoin {
@@ -22,4 +22,6 @@ public class LabCoin {
 
     private static final Logger LOGGER = Logger.getLogger(LabCoin.class.getName());
 
+    public LabCoin() {
+    }
 }
