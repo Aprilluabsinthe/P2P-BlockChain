@@ -40,19 +40,14 @@ public class OutputTransaction {
     }
 
     // parser for String
-    // String will be like:
+    // Stirn
     // {"outId":"a696c9e2a56c979c3e6793a93d9a1bdf364ece3728038fb71c76a17b63b332cf",
     // "receiver":[48,86,48,16,6,7,42,-122,72,-50,61,2,1,6,5,43,-127,4,0,10,3,66,0,4,83,-11,83,69,123,0,-1,74,29,63,30,123,-30,-23,-22,-13,12,-86,-53,-4,23,66,-85,80,-70,49,28,125,-22,-26,74,-101,121,-124,0,-102,28,9,-100,38,-121,-56,-61,-23,21,-90,-75,-110,51,0,105,11,-30,0,-118,-14,41,-98,-83,-84,72,-88,35,127],
     // "asset":100.01,
     // "parent":"4050302"}
     @Override
     public String toString() {
-        try {
-            return toJson();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return "OUTPUT TO STRING ERROR";
+        return toJson();
     }
 
     public class outData{
@@ -70,7 +65,7 @@ public class OutputTransaction {
         }
     }
 
-    public String toJson() throws CloneNotSupportedException {
+    public String toJson() {
         outData copy = new outData();
         Gson gson = new Gson();
         String json = gson.toJson(copy);
@@ -93,13 +88,14 @@ public class OutputTransaction {
     }
 
 
-//    public static void main(String[] args) {
-//        KeyPair kp = Helper.generateKey();
-//        OutputTransaction outputtx = new OutputTransaction(kp.getPublic(), (float)100.01,"4050302");
-//        System.out.println(outputtx.toString());
-//        OutputTransaction out = fromString(outputtx.toString());
-//        System.out.println(out.equals(outputtx));
-//        System.out.println(out.toString());
-//    }
+
+    public static void main(String[] args) {
+        KeyPair kp = Helper.generateKey();
+        OutputTransaction outputtx = new OutputTransaction(kp.getPublic(), (float)100.01,"4050302");
+        System.out.println(outputtx.toString());
+        OutputTransaction out = fromString(outputtx.toString());
+        System.out.println(out.equals(outputtx));
+        System.out.println(out.toString());
+    }
 
 }

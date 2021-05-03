@@ -36,7 +36,7 @@ public class RemoteController extends UnicastRemoteObject implements RemoteContr
 
     @Override
     public void downloadChain() throws RemoteException {
-        message_callback.downloadChain();
+        message_callback.consensusBlockchain();
     }
 
 }

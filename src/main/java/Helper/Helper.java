@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import Transaction.Transaction;
+import basic.Block;
+import basic.trial;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -155,6 +157,31 @@ public class Helper {
         java.security.PublicKey ecPublicKey = (PublicKey) factory
                 .generatePublic(new X509EncodedKeySpec(bytePubKey)); // Helper.toByte(ecRemotePubKey)) is java.security.PublicKey#getEncoded()
         return (PublicKey) ecPublicKey;
+    }
+
+    public static byte[] blockToBytes(Block block){
+        return block.toString().getBytes();
+    }
+
+    public static Block bytesToBlocks(byte[] bytes){
+        String json = new String(bytes);
+        return Block.fromJson(json);
+    }
+
+    public static byte[] blockchainToBytes(List<Block> blockChains){
+        String blocksString = String.join(";", blockChains.toString());
+        return blocksString.getBytes();
+    }
+
+    public static List<Block> bytesToBlockchain(byte[] bytes){
+        String json = new String(bytes);
+        String[] blocksString = json.split(";");
+        List<Block> blockchain = new ArrayList<>();
+        for(String str:blocksString){
+            Block thisBlock = Block.fromJson(str);
+            blockchain.add(thisBlock);
+        }
+        return blockchain;
     }
 
 }

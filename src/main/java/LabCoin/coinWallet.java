@@ -1,6 +1,5 @@
 package LabCoin;
 
-import LabCoin.LabCoin;
 import Transaction.OutputTransaction;
 import Transaction.InputTransaction;
 import Transaction.Transaction;
@@ -16,8 +15,8 @@ import java.security.*;
 import java.util.logging.Logger;
 
 public class coinWallet {
-    public PrivateKey privateKey;
-    public PublicKey publicKey;
+    public static PrivateKey privateKey;
+    public static PublicKey publicKey;
     public static Map<String, OutputTransaction> walletUTXOMap = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(coinWallet.class.getName());
 
@@ -52,23 +51,23 @@ public class coinWallet {
         }
     }
 
-    public float walletBalance(){
+    public static float walletBalance(){
         float balance = 0;
         for (Map.Entry<String, OutputTransaction> entry : LabCoin.UTXOMap.entrySet()){
             OutputTransaction unPackcoin = entry.getValue();
             if(coinForMe(unPackcoin)){
-                this.walletUTXOMap.put(unPackcoin.outputId, unPackcoin);
+                walletUTXOMap.put(unPackcoin.outputId, unPackcoin);
                 balance += unPackcoin.value;
             }
         }
         return balance;
     }
 
-    public boolean coinForMe(OutputTransaction coin){
-        return coin.recipient.equals(this.publicKey);
+    public static boolean coinForMe(OutputTransaction coin){
+        return coin.recipient.equals(publicKey);
     }
 
-    public Transaction makeTransaction(PublicKey receiver,float value){
+    public static Transaction makeTransaction(PublicKey receiver, float value){
         if(value > walletBalance()){
             System.out.println("coinWallet do not have enough asset");
             LOGGER.fine("coinWallet do not have enough asset");
@@ -77,7 +76,7 @@ public class coinWallet {
         List<InputTransaction> inputTransactionList = new ArrayList<InputTransaction>();
 
         float assetSum = 0;
-        for (Map.Entry<String, OutputTransaction> entry : this.walletUTXOMap.entrySet()){
+        for (Map.Entry<String, OutputTransaction> entry : walletUTXOMap.entrySet()){
             OutputTransaction unspentCoin = entry.getValue();
             assetSum += unspentCoin.value;
             inputTransactionList.add(new InputTransaction(unspentCoin.outputId));
@@ -87,12 +86,12 @@ public class coinWallet {
         }
 
         // generate new transaction and sign
-        Transaction newTransaction = new Transaction(this.publicKey,receiver,value,inputTransactionList);
-        newTransaction.yieldSignature(this.privateKey);
+        Transaction newTransaction = new Transaction(publicKey,receiver,value,inputTransactionList);
+        newTransaction.yieldSignature(privateKey);
 
         // move from wallet
         for(InputTransaction inputHasPacked : inputTransactionList){
-            this.walletUTXOMap.remove(inputHasPacked.outputId);
+            walletUTXOMap.remove(inputHasPacked.outputId);
         }
 
         return newTransaction;

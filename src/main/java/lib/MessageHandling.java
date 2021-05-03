@@ -27,5 +27,13 @@ public interface MessageHandling {
 
     void broadcastNewBlock();
 
-    void downloadChain();
+    void consensusBlockchain();
+
+    boolean broadcastToPeer(int peerAddr, byte[] blockToBytes);
+
+    int getPeerNumber();
+
+    byte[] getPeerBlockChain(int peerAddr);
+
+
 }

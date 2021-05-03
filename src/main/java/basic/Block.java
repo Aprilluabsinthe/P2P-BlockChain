@@ -10,30 +10,31 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class Block {
-    public final static String SEPARATOR = ",";
-    public final static String BLOCK_SEPARATOR = ";";
     private int index;
     private String timestamp;
+    private float asset;
     private String hash;
     private String preHash;
-    private int difficulty;
+    private static int difficulty;
     private int nonce;
     private String merkleRoot;
     private transient List<Transaction> transactionList = new ArrayList<>();
 
-    private static final Logger LOGGER = Logger.getLogger(Block.class.getName());
 
+    private static final Logger LOGGER = Logger.getLogger(Block.class.getName());
     public Block(int difficulty) {
         this.difficulty = difficulty;
     }
 
     public Block() { }
 
-    public Block(int index, String timestamp, String hash, String preHash, int difficulty, int nonce, String merkleRoot, List<Transaction> transactionList) {
+    public Block(int index, String timestamp, float asset,String hash, String preHash, int difficulty, int nonce, String merkleRoot, List<Transaction> transactionList) {
         this.index = index;
         this.timestamp = timestamp;
+        this.asset = asset;
         this.hash = hash;
         this.preHash = preHash;
+
         this.difficulty = difficulty;
         this.nonce = nonce;
         this.merkleRoot = merkleRoot;
@@ -46,10 +47,11 @@ public class Block {
      * @param difficulty
      * @return
      */
-    public static Block buildCurrentBlock(Block preBlock, int difficulty){
+    public static Block buildCurrentBlock(Block preBlock, float asset, int difficulty){
         Block curBlock = new Block(difficulty);
         curBlock.setIndex(preBlock.getIndex() + 1);
         SimpleDateFormat stringFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        curBlock.setAsset(asset);
         curBlock.setTimestamp(stringFormat.format(new Date()));
         curBlock.setPreHash(preBlock.getHash());
         curBlock.setHash(curBlock.blockMining());
@@ -59,7 +61,7 @@ public class Block {
 
 
     public static String areaToHash(Block block){
-        return block.getIndex() + block.getTimestamp() + block.getNonce() + block.getPreHash();
+        return block.getIndex() + block.getTimestamp() + block.getAsset() + block.getPreHash();
     }
 
     /***
@@ -87,10 +89,15 @@ public class Block {
     //************************************************************************
 
 
+    public static String targetString(){
+        return Helper.getDificultyTarget(difficulty);
+    }
+
     public static boolean isValidBlock(Block newBlock, Block oldBlock){
         return (oldBlock.getIndex() + 1 == newBlock.getIndex())
                 && (oldBlock.getHash().equals(newBlock.getPreHash()))
-                && (calculateNewHash(newBlock).equals(newBlock.getHash()));
+                && (calculateNewHash(newBlock).equals(newBlock.getHash()))
+                && (newBlock.getHash().startsWith(targetString()));
     }
 
 
@@ -106,7 +113,7 @@ public class Block {
         }
 
         if(this.preHash.equals("0")){
-            LOGGER.info("the first block");
+            LOGGER.info("block Discarded");
             this.transactionList.add(tx);
             return true;
         }
@@ -184,35 +191,79 @@ public class Block {
         return (List<Transaction>) transactionList;
     }
 
+    public float getAsset() {
+        return asset;
+    }
+
+    public void setAsset(float asset) {
+        this.asset = asset;
+    }
+
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
+    }
+
+
+
     @Override
     public String toString() {
-        return "Block{" +
-                "index=" + index +
-                ", timestamp='" + timestamp + '\'' +
-                ", hash='" + hash + '\'' +
-                ", preHash='" + preHash + '\'' +
-                ", difficulty=" + difficulty +
-                ", nonce=" + nonce +
-                ", merkleRoot='" + merkleRoot + '\'' +
-                ", transactionList=" + transactionList +
-                '}';
+        return toJson();
     }
 
-    private class BlockString{
-        private int index;
-        private String timestamp;
-        private String hash;
-        private String preHash;
-        private int difficulty;
-        private int nonce;
-        private String merkleRoot;
-        private List<String> transactionList = new ArrayList<>();
+    public class blockData{
+        private int blockIndex;
+        private String blockTimestamp;
+        private float blockAsset;
+        private String blockHash;
+        private String blockPreHash;
+        private int blockDifficulty;
+        private int blockNonce;
+        private String blockMerkleRoot;
+        private List<String> blockTransactionList = new ArrayList<>();
+
+
+        public blockData() {
+            this.blockIndex = index;
+            this.blockTimestamp = timestamp;
+            this.blockAsset = asset;
+            this.blockHash = hash;
+            this.blockPreHash = preHash;
+            this.blockDifficulty = difficulty;
+            this.blockNonce = nonce;
+            this.blockMerkleRoot = merkleRoot;
+            for(Transaction tx : transactionList){
+                this.blockTransactionList.add(tx.toString());
+            }
+        }
     }
 
-//    public Gson toJson(){
-//        Block object = new Block(index,timestamp,hash,preHash,difficulty,nonce,merkleRoot,transactionList);
-//        Gson gson = new Gson(object);
-//
-//    }
+    public String toJson(){
+        blockData copy = new blockData();
+        Gson gson = new Gson();
+        String json = gson.toJson(copy);
+        return json;
+    }
+
+    public static Block fromJson(String json){
+        Gson gson = new Gson();
+        blockData obj = gson.fromJson(json, blockData.class);
+        int index = obj.blockIndex;
+        String timestamp = obj.blockTimestamp;
+        float asset = obj.blockAsset;
+        String hash = obj.blockHash;
+        String preHash = obj.blockPreHash;
+        int difficulty = obj.blockDifficulty;
+        int nonce = obj.blockNonce;
+        String merkleRoot = obj.blockMerkleRoot;
+
+        List<String> transactionStrList = obj.blockTransactionList;
+        List<Transaction> transactionList = new ArrayList<Transaction>();
+
+        for(String txString : transactionStrList){
+            Transaction transaction = Transaction.fromString(txString);
+            transactionList.add(transaction);
+        }
+        return new Block(index,timestamp,asset,hash,preHash,difficulty,nonce,merkleRoot,transactionList);
+    }
 
 }

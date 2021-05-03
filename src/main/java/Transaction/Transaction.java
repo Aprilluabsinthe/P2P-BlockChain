@@ -106,12 +106,7 @@ public class Transaction {
 
 	@Override
 	public String toString() {
-		try {
-			return toJson();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-		return "OUTPUT TO STRING ERROR";
+		return toJson();
 	}
 
 	public class tranData{
@@ -130,7 +125,7 @@ public class Transaction {
 		}
 	}
 
-	public String toJson() throws CloneNotSupportedException {
+	public String toJson() {
 		tranData copy = new tranData();
 		Gson gson = new Gson();
 		String json = gson.toJson(copy);

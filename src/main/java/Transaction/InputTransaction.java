@@ -18,12 +18,7 @@ public class InputTransaction {
 
     @Override
     public String toString() {
-        try {
-            return toJson();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return "INPUT TO STRING ERROR";
+        return toJson();
     }
 
     private class inData{
@@ -36,7 +31,7 @@ public class InputTransaction {
         }
     }
 
-    public String toJson() throws CloneNotSupportedException {
+    public String toJson() {
         inData copy = new inData();
         Gson gson = new Gson();
         String json = gson.toJson(copy);
