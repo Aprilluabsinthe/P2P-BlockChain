@@ -69,7 +69,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			resp.getWriter().print("Current BlockChain：" + JSON.toJSONString(blockService.getBlockChain()));
+			resp.getWriter().print("Current BlockChain: " + JSON.toJSONString(blockService.getBlockChain()));
 		}
 	}
 
