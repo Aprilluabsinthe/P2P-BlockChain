@@ -1,20 +1,8 @@
 package LabBlockChain.BlockChain.Transaction;
 
-/**
- * 交易输出
- * 
- * @author aaron
- *
- */
 public class TransactionOutput {
 
-	/**
-	 * 交易金额
-	 */
 	private int value;
-	/**
-	 * 交易接收方的钱包公钥的hash值
-	 */
 	private String publicKeyHash;
 
 	public TransactionOutput() {

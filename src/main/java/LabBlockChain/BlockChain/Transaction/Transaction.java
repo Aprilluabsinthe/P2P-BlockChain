@@ -5,25 +5,10 @@ import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Helper.CoderHelper;
 import LabBlockChain.BlockChain.Helper.RSACoder;
 
-/**
- * 交易
- * f
- * @author aaron
- *
- */
 public class Transaction {
 
-	/**
-	 * 交易唯一标识
-	 */
 	private String id;
-	/**
-	 * 交易输入
-	 */
 	private TransactionInput txIn;
-	/**
-	 * 交易输出
-	 */
 	private TransactionOutput txOut;
 
 	public Transaction() {
@@ -61,28 +46,17 @@ public class Transaction {
 		this.txOut = txOut;
 	}
 
-	/**
-	 * 是否系统生成区块的奖励交易
-	 * 
-	 * @return
-	 */
 	public boolean coinbaseTx() {
 		return txIn.getTxId().equals("0") && getTxIn().getValue() == -1;
 	}
 
-	/**
-	 * 用私钥生成交易签名
-	 * 
-	 * @param privateKey
-	 * @param prevTx
-	 */
 	public void sign(String privateKey, Transaction prevTx) {
 		if (coinbaseTx()) {
 			return;
 		}
 
 		if (!prevTx.getId().equals(txIn.getTxId())) {
-			System.err.println("交易签名失败：当前交易输入引用的前一笔交易与传入的前一笔交易不匹配");
+			System.err.println("Transaction Failed, previous Sign not match");
 		}
 
 		Transaction txClone = cloneTx();
@@ -96,30 +70,19 @@ public class Transaction {
 		txIn.setSignature(sign);
 	}
 
-	/**
-	 * 生成用于交易签名的交易记录副本
-	 * 
-	 * @return
-	 */
 	public Transaction cloneTx() {
 		TransactionInput transactionInput = new TransactionInput(txIn.getTxId(), txIn.getValue(), null, null);
 		TransactionOutput transactionOutput = new TransactionOutput(txOut.getValue(), txOut.getPublicKeyHash());
 		return new Transaction(id, transactionInput, transactionOutput);
 	}
 
-	/**
-	 * 验证交易签名
-	 * 
-	 * @param prevTx
-	 * @return
-	 */
 	public boolean verify(Transaction prevTx) {
 		if (coinbaseTx()) {
 			return true;
 		} 
 
 		if (!prevTx.getId().equals(txIn.getTxId())) {
-			System.err.println("验证交易签名失败：当前交易输入引用的前一笔交易与传入的前一笔交易不匹配");
+			System.err.println("Transaction verification Failed, previous Sign not match");
 		}
 
 		Transaction txClone = cloneTx();
@@ -134,11 +97,6 @@ public class Transaction {
 		return result;
 	}
 
-	/**
-	 * 生成交易的hash
-	 * 
-	 * @return
-	 */
 	public String hash() {
 		return CoderHelper.applySha256(JSON.toJSONString(this));
 	}
