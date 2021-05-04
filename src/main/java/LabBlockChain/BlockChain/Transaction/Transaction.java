@@ -4,9 +4,9 @@ package LabBlockChain.BlockChain.Transaction;
 import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Helper.CoderHelper;
 import LabBlockChain.BlockChain.Helper.RSACoder;
+import com.google.gson.Gson;
 
 public class Transaction {
-
 	private String id;
 	private TransactionInput txIn;
 	private TransactionOutput txOut;
@@ -124,6 +124,39 @@ public class Transaction {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return toJson();
+	}
+
+	private class TransactionData{
+		private String tid;
+		private String ttxIn;
+		private String ttxOut;
+
+		public TransactionData() {
+			this.tid = id;
+			this.ttxIn = txIn.toString();
+			this.ttxOut = txOut.toString();
+		}
+	}
+
+	public String toJson() {
+		TransactionData copy = new TransactionData();
+		Gson gson = new Gson();
+		String json = gson.toJson(copy);
+		return json;
+	}
+
+	public static Transaction fromString(String json){
+		Gson gson = new Gson();
+		TransactionData obj = gson.fromJson(json, TransactionData.class);
+		String txId = obj.tid;
+		TransactionInput txIn = TransactionInput.fromString(obj.ttxIn);
+		TransactionOutput txOut = TransactionOutput.fromString(obj.ttxOut);
+		return new Transaction(txId,txIn,txOut);
 	}
 
 }

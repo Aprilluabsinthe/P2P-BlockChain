@@ -10,13 +10,13 @@ public interface BlockServiceInterface {
 
     boolean addBlock(Block newBlock);
 
-    boolean isValidNewBlock(Block newBlock, Block previousBlock);
+    boolean isValidBlock(Block newBlock, Block previousBlock);
 
     void replaceChain(List<Block> newBlocks);
 
     Block mine(String toAddress);
 
-    Transaction newCoinbaseTx(String toAddress);
+    Transaction generateBaseTx(String toAddress);
 
     Transaction createTransaction(Wallet senderWallet, Wallet recipientWallet, int amount);
 

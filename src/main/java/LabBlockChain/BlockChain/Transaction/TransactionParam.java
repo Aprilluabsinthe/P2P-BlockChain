@@ -3,7 +3,7 @@ package LabBlockChain.BlockChain.Transaction;
 public class TransactionParam {
 	private String sender;
 	private String recipient;
-	private int Amount;
+	private int amount;
 
 	public String getSender() {
 		return sender;
@@ -22,11 +22,11 @@ public class TransactionParam {
 	}
 
 	public int getAmount() {
-		return Amount;
+		return amount;
 	}
 
 	public void setAmount(int amount) {
-		Amount = amount;
+		amount = amount;
 	}
 
 }

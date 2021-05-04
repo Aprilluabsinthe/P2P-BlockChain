@@ -20,7 +20,9 @@ public class BlockService implements BlockServiceInterface {
 	private List<Transaction> packedTransactions = new ArrayList<>();
 
 	public BlockService() {
-		Block genesisBlock = new Block(1, System.currentTimeMillis(), new ArrayList<Transaction>(), 1, "1", "1");
+		Block genesisBlock = new Block(
+				1, System.currentTimeMillis(), new ArrayList<Transaction>(),
+				1, "1", "1");
 		blockChain.add(genesisBlock);
 		System.out.println("Genesis Block：" + JSON.toJSONString(genesisBlock));
 	}
@@ -40,7 +42,7 @@ public class BlockService implements BlockServiceInterface {
 	 */
 	@Override
 	public boolean addBlock(Block newBlock) {
-		if (isValidNewBlock(newBlock, getLatestBlock())) {
+		if (isValidBlock(newBlock, getLatestBlock())) {
 			blockChain.add(newBlock);
 			packedTransactions.addAll(newBlock.getTransactions());
 			return true;
@@ -52,17 +54,23 @@ public class BlockService implements BlockServiceInterface {
 	 * validate new Block
 	 */
 	@Override
-	public boolean isValidNewBlock(Block newBlock, Block prevBlock) {
-		if (!prevBlock.getHash().equals(newBlock.getPreviousHash())) {
+	public boolean isValidBlock(Block curBlock, Block prevBlock) {
+		if (!prevBlock.getHash().equals(curBlock.getPreviousHash())) {
 			System.out.println("prevHash not equal to the Hash of previous Block");
 			return false;
-		} else {
-			String hash = calculateHash(newBlock.getPreviousHash(), newBlock.getTransactions(), newBlock.getNonce());
-			if (!hash.equals(newBlock.getHash())) {
-				System.out.println("New hash " + hash + " not match " + newBlock.getHash());
+		}
+		else if((prevBlock.getIndex() + 1) != curBlock.getIndex()){
+			System.out.println("prev index and current index mot match");
+			return false;
+		}
+		else {
+			String hash = calculateHash(curBlock.getPreviousHash(), curBlock.getTransactions(), curBlock.getNonce());
+//			String hash = calculateFullHash(curBlock);
+			if (!hash.equals(curBlock.getHash())) {
+				System.out.println("New hash " + hash + " not match " + curBlock.getHash());
 				return false;
 			}
-			if (!isValidHash(newBlock.getHash())) {
+			if (!isValidHash(curBlock.getHash())) {
 				return false;
 			}
 		}
@@ -71,18 +79,21 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	private boolean isValidChain(List<Block> chain) {
-		Block block = null;
-		Block lastBlock = chain.get(0);
-		int currentIndex = 1;
-		while (currentIndex < chain.size()) {
-			block = chain.get(currentIndex);
+		//  outerindex     0            1       2      3       4        5
+		//  innerindex     1            2       3      4       5        6
+		//           genesis block | block | block | block | block | block |
+		//             prev           cur
+		Block curBlock = null;
+		Block prevBlock = chain.get(0);
+		int iter = 1;
 
-			if (!isValidNewBlock(block, lastBlock)) {
+		while (iter < chain.size()) {
+			curBlock = chain.get(iter);
+			if (!isValidBlock(curBlock, prevBlock)) {
 				return false;
 			}
-
-			lastBlock = block;
-			currentIndex++;
+			prevBlock = curBlock;
+			iter++;
 		}
 		return true;
 	}
@@ -107,14 +118,11 @@ public class BlockService implements BlockServiceInterface {
 		if (isValidChain(newBlocks) && newBlocks.size() > blockChain.size()) {
 			blockChain = newBlocks;
 			packedTransactions.clear();
-
 			for(Block block:blockChain){
 				packedTransactions.addAll(block.getTransactions());
 			}
-//			blockChain.forEach(block -> {
-//				packedTransactions.addAll(block.getTransactions());
-//			});
-		} else {
+		}
+		else {
 			System.out.println("Peer Blockchain not adopted;");
 		}
 	}
@@ -134,8 +142,18 @@ public class BlockService implements BlockServiceInterface {
 		);
 	}
 
+	private String calculateFullHash(Block block) {
+		String toHash = block.getIndex() + block.getTimestamp() + JSON.toJSONString(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
+		return CoderHelper.applySha256(toHash);
+	}
+
+	/**
+	 * Mine a new block
+	 * @param toAddress
+	 * @return
+	 */
 	public Block mine(String toAddress) {
-		allTransactions.add(newCoinbaseTx(toAddress));
+		allTransactions.add(generateBaseTx(toAddress));
 		List<Transaction> blockTxs = new ArrayList<Transaction>(allTransactions);
 		blockTxs.removeAll(packedTransactions);
 		verifyAllTransactions(blockTxs);
@@ -145,6 +163,7 @@ public class BlockService implements BlockServiceInterface {
 		long start = System.currentTimeMillis();
 		System.out.println("Start Mining");
 		while (true) {
+//			newBlockHash = calculateFullHash(curBlock);
 			newBlockHash = calculateHash(getLatestBlock().getHash(), blockTxs, nonce);
 			if (isValidHash(newBlockHash)) {
 				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
@@ -172,12 +191,17 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	@Override
-	public Transaction newCoinbaseTx(String toAddress) {
+	public Transaction generateBaseTx(String receiverAddr) {
 		TransactionInput txIn = new TransactionInput("0", -1, null, null);
-		Wallet wallet = myWalletMap.get(toAddress);
-		//指定生成区块的奖励为10BTC
+		System.out.println("generateBaseTx txIn：" + txIn.toString());
+		Wallet wallet = myWalletMap.get(receiverAddr);
+		System.out.println("generateBaseTx myWalletMap：" + myWalletMap.toString());
 		TransactionOutput txOut = new TransactionOutput(10, wallet.getHashPubKey());
-		return new Transaction(CoderHelper.UUID(), txIn, txOut);
+		System.out.println("generateBaseTx txOut：" + txOut.toString());
+		String forHashId = txIn.toString() + txOut.toString();
+//		String id = CoderHelper.applySha256(forHashId);
+//		return new Transaction(CoderHelper.UUID(), txIn, txOut);
+		return new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 	}
 
 	@Override
@@ -185,19 +209,24 @@ public class BlockService implements BlockServiceInterface {
 
 		List<Transaction> unspentTxs = findUnspentTransactions(senderWallet.getAddress());
 		Transaction prevTx = null;
-		for (Transaction transaction : unspentTxs) {
-			//TODO exchage
-			if (transaction.getTxOut().getValue() == amount) {
-				prevTx = transaction;
-				break;
+		if( unspentTxs != null){
+			for (Transaction transaction : unspentTxs) {
+				//TODO exchage
+				if (transaction.getTxOut().getValue() == amount) {
+					prevTx = transaction;
+					break;
+				}
+			}
+			if (prevTx == null) {
+				return null;
 			}
 		}
-		if (prevTx == null) {
-			return null;
-		}
+
 		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, senderWallet.getPublicKey());
 		TransactionOutput txOut = new TransactionOutput(amount, recipientWallet.getHashPubKey());
-		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
+		String forHashId = txIn.toString() + txOut.toString();
+//		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
+		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 		transaction.sign(senderWallet.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
 		return transaction;

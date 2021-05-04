@@ -43,19 +43,25 @@ make test
 - Mine(POST)
 
   ```
-  curl --data "address=352572D908368BF8DC337A778A4B3E75" http://localhost:1234/mine
+  curl --data "address=281505BD9BF8E2C8B12D373114176F75" http://localhost:1234/mine
   ```
 
 - Transaction(POST)
 
   ```
-  curl -H "Content-type:application/json" --data '{"sender": "d4e44223434sdfdgerewfd3fefe9dfe","recipient": "45adiy5grt4544sdfdg454efe54dssq5","amount": 10}' http://localhost:1234/transactions/new
+  curl -H "Content-type:application/json" --data '{"sender": "1F13EC6B7F7D82FF222171C74C917CB6","recipient": "281505BD9BF8E2C8B12D373114176F75","amount": 10}' http://localhost:1234/transactions/new
   ```
 
 - Query for UXTOs(GET)
 
   ```
-  curl http://localhost:1234/transactions/unpacked/get
+  curl http://localhost:1234/transactions/get/unpacked
+  ```
+
+- Query for all Transactions(GET)
+
+  ```
+  curl http://localhost:1234/transactions/get/all
   ```
 
 - All wallets(GET)
@@ -67,5 +73,5 @@ make test
 - Wallet Balance(GET)
 
   ```
-  curl "http://localhost:1234/wallet/balance/get?address=E68746BFA62BBC98653A7409F191E564"
+  curl "http://localhost:1234/wallet/get/balance?address=1F13EC6B7F7D82FF222171C74C917CB6"
   ```

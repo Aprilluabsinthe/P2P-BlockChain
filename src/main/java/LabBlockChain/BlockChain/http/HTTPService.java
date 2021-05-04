@@ -41,21 +41,16 @@ public class HTTPService {
 			context.setContextPath("/");
 			server.setHandler(context);
 
-			// 查询区块链
 			context.addServlet(new ServletHolder(new ChainServlet()), "/chain");
-			// 创建钱包
 			context.addServlet(new ServletHolder(new CreateWalletServlet()), "/wallet/create");
-			// 查询钱包
 			context.addServlet(new ServletHolder(new GetWalletsServlet()), "/wallet/get");
-			// 挖矿
+			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/get/balance");
+
 			context.addServlet(new ServletHolder(new MineServlet()), "/mine");
-			// 转账交易
+
 			context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
-			// 查询未打包交易
-			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/unpacked/get");
-			// 查询钱包余额
-			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/balance/get");
-			// 查询所有socket节点
+			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/get/unpacked");
+			context.addServlet(new ServletHolder(new GetAllTransactionServlet()), "/transactions/get/all");
 			context.addServlet(new ServletHolder(new PeersServlet()), "/peers");
 
 			server.start();
@@ -124,6 +119,8 @@ public class HTTPService {
 
 			Wallet senderWallet = blockService.getMyWalletMap().get(txParam.getSender());
 			Wallet recipientWallet = blockService.getMyWalletMap().get(txParam.getRecipient());
+			int amount = txParam.getAmount();
+
 			if (recipientWallet == null) {
 				recipientWallet = blockService.getOtherWalletMap().get(txParam.getRecipient());
 			}
@@ -132,11 +129,10 @@ public class HTTPService {
 				return;
 			}
 
-			Transaction newTransaction = blockService.createTransaction(senderWallet, recipientWallet,
-			        txParam.getAmount());
+			Transaction newTransaction = blockService.createTransaction(senderWallet, recipientWallet, amount);
 			if (newTransaction == null) {
 				resp.getWriter().print(
-				        "Wallet" + txParam.getSender() + "Do not have enough balance (require" + txParam.getAmount() + "LabCoin UTXO)");
+				        "Wallet " + txParam.getSender() + " Do not have enough balance (require " + txParam.getAmount() + " LabCoin UTXO)");
 			} else {
 				resp.getWriter().print("New Transaction:" + JSON.toJSONString(newTransaction));
 				Transaction[] txs = {newTransaction}; 
@@ -163,6 +159,15 @@ public class HTTPService {
 			List<Transaction> transactions = new ArrayList<>(blockService.getAllTransactions());
 			transactions.removeAll(blockService.getPackedTransactions());
 			resp.getWriter().print("UTXOs in the Node：" + JSON.toJSONString(transactions));
+		}
+	}
+
+	private class GetAllTransactionServlet extends HttpServlet{
+		@Override
+		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			resp.setCharacterEncoding("UTF-8");
+			List<Transaction> transactions = new ArrayList<>(blockService.getAllTransactions());
+			resp.getWriter().print("all Transactions in the Node：" + JSON.toJSONString(transactions));
 		}
 	}
 	

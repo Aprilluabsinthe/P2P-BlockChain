@@ -1,11 +1,16 @@
 package LabBlockChain.BlockChain.basic;
 import LabBlockChain.BlockChain.Transaction.*;
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 
 public class Block {
-    private final static int DIFFICULTY = 5;
+    private final static int DIFFICULTY = 3;
 
     //******************************************************
     // ***************______________________*****************
@@ -98,5 +103,16 @@ public class Block {
         Arrays.fill(c, '0');
         String result = new String(c);
         return result;
+    }
+
+    public String contentToHash(Block block){
+        return block.index + block.timestamp + JSON.toJSONString(block.transactions) + block.previousHash + block.nonce;
+    }
+
+    public String calculateHash(Block block) {
+        String record = contentToHash(block);
+        MessageDigest digest = DigestUtils.getSha256Digest();
+        byte[] hash = digest.digest(StringUtils.getBytesUtf8(record));
+        return Hex.encodeHexString(hash);
     }
 }
