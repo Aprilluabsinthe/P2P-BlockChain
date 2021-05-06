@@ -175,10 +175,11 @@ public class BlockService implements BlockServiceInterface {
 		int nonce = 0;
 		long start = System.currentTimeMillis();
 		System.out.println("Start Mining>>>>>>");
+
 		while (true) {
-//			newBlockHash = calculateFullHash(curBlock);
 			newBlockHash = calculateHash(getLatestBlock().getHash(), UTXOBlocks, nonce);
 			if (isValidHash(newBlockHash)) {
+				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
@@ -188,6 +189,7 @@ public class BlockService implements BlockServiceInterface {
 		}
 
 		Block block = createNewBlock(UTXOBlocks,nonce, getLatestBlock().getHash(), newBlockHash);
+		System.out.println("New Block: "+new Gson().toJson(block));
 		return block;
 	}
 
@@ -201,6 +203,11 @@ public class BlockService implements BlockServiceInterface {
 		}
 	}
 
+	/**
+	 * system base transaction, have only output, no input, no signaturexs
+	 * @param receiverWallet
+	 * @return
+	 */
 	@Override
 	public Transaction generateBaseTx(String receiverWallet) {
 		TransactionInput txIn = new TransactionInput("0", -1, null, null);
@@ -212,8 +219,9 @@ public class BlockService implements BlockServiceInterface {
 		TransactionOutput txOut = new TransactionOutput(10, receiver.getHashPubKey());
 		System.out.println("generateBaseTx txOut：" + txOut.toString());
 		String forHashId = txIn.toString() + txOut.toString();
+		return new Transaction(CoderHelper.UUID(), txIn, txOut);
 
-		return new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
+//		return new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 	}
 
 	@Override
@@ -226,20 +234,19 @@ public class BlockService implements BlockServiceInterface {
 		List<Transaction> senderUTXOs = findUTXOs(sender.getAddress());
 		Transaction prevTx = null;
 		ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
-
+		int total = 0;
 		if( senderUTXOs != null){
 			for (Transaction transaction : senderUTXOs) {
-				if (transaction.getTxOut().getValue() == amount) {
+				total +=  transaction.getTxOut().getValue();
+//
+//				if (transaction.getTxOut().getValue() == amount) {
+//					prevTx = transaction;
+//					break;
+//				}
+//				// exchange
+				if(total >= amount){
 					prevTx = transaction;
 					break;
-				}
-				// exchange
-				if(transaction.getTxOut().getValue() > amount){
-					prevTx = transaction;
-
-
-
-
 				}
 			}
 			if (prevTx == null) {
@@ -247,13 +254,26 @@ public class BlockService implements BlockServiceInterface {
 			}
 		}
 
+		// transaction of amount
 		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, sender.getPublicKey());
 		TransactionOutput txOut = new TransactionOutput(amount, receiver.getHashPubKey());
-		String forHashId = txIn.toString() + txOut.toString();
-//		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
-		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
+//		String forHashId = txIn.toString() + txOut.toString();
+		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
+//		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
+
+		// transaction of exchange
+		// sennder send the exchange to it self
+//		int exchange = total - amount;
+//		TransactionInput txIn_exchange = new TransactionInput(transaction.getId(), exchange, null, sender.getPublicKey());
+//		TransactionOutput txOut_exchange = new TransactionOutput(exchange, sender.getHashPubKey());
+////		String forHashId_exchange = txIn.toString() + txOut.toString();
+//		Transaction transaction_exchange = new Transaction(CoderHelper.UUID(), txIn_exchange, txOut_exchange);
+////		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
+//		transaction_exchange.sign(sender.getPrivateKey(), transaction);
+//		allTransactions.add(transaction_exchange);
+
 		return transaction;
 	}
 
@@ -343,6 +363,7 @@ public class BlockService implements BlockServiceInterface {
 	public void setMyWalletMap(Map<String, Wallet> myWalletMap) {
 		this.myWalletMap = myWalletMap;
 	}
+
 
 	@Override
 	public Map<String, Wallet> getOtherWalletMap() {

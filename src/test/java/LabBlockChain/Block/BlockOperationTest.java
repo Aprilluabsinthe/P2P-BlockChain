@@ -2,7 +2,10 @@ package LabBlockChain.Block;
 
 import LabBlockChain.BlockChain.Helper.CoderHelper;
 import LabBlockChain.BlockChain.Transaction.Transaction;
+import LabBlockChain.BlockChain.Transaction.TransactionInput;
+import LabBlockChain.BlockChain.Transaction.TransactionOutput;
 import LabBlockChain.BlockChain.basic.Block;
+import LabBlockChain.BlockChain.basic.Wallet;
 import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import org.junit.*;
@@ -30,13 +33,26 @@ public class BlockOperationTest {
 
         List<Transaction> txlist = new ArrayList<Transaction>();
         Transaction localtx = new Transaction();
-        Transaction fromOthertx1 = new Transaction();
-        Transaction fromOthertx2 = new Transaction();
-        Transaction systemReward = new Transaction();
         txlist.add(localtx);
-        txlist.add(fromOthertx1);
-        txlist.add(fromOthertx2);
-        txlist.add(systemReward);
+
+        Wallet sender = Wallet.generateWallet();
+        Wallet receiver = Wallet.generateWallet();
+
+        // generate the first base transaction
+        int amount = 10;
+        TransactionInput Intx = null;
+        TransactionOutput Outtx = new TransactionOutput(amount,sender.getHashPubKey());
+//        String forHashId = Intx.toString() + Outtx.toString();
+        Transaction tx = new Transaction(CoderHelper.UUID(),Intx,Outtx);
+        txlist.add(tx);
+
+        // generate following transactions
+        TransactionInput Intx_test = new TransactionInput(tx.getId(),amount,null,sender.getPublicKey());
+        TransactionOutput Outtx_test = new TransactionOutput(amount,receiver.getHashPubKey());
+        String tx_testId = CoderHelper.applySha256(Intx_test.toString()+Outtx_test.toString());
+        Transaction tx_test = new Transaction(CoderHelper.UUID(),Intx_test,Outtx_test);
+        tx_test.sign(sender.getPrivateKey(),tx);
+        txlist.add(tx_test);
 
         // obtain previous last block
         Block lastBlock = blockchain.get(blockchain.size()-1);

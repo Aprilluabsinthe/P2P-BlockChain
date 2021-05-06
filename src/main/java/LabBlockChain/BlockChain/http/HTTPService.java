@@ -44,11 +44,13 @@ public class HTTPService {
 			context.addServlet(new ServletHolder(new ChainServlet()), "/chain");
 			context.addServlet(new ServletHolder(new CreateWalletServlet()), "/wallet/create");
 			context.addServlet(new ServletHolder(new GetWalletsServlet()), "/wallet/get");
+			context.addServlet(new ServletHolder(new GetOthersWalletsServlet()), "/wallet/get/other");
 			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/get/balance");
 
 			context.addServlet(new ServletHolder(new MineServlet()), "/mine");
 
 			context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
+			context.addServlet(new ServletHolder(new GetPackedTransactionServlet()), "/transactions/get/packed");
 			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/get/unpacked");
 			context.addServlet(new ServletHolder(new GetAllTransactionServlet()), "/transactions/get/all");
 			context.addServlet(new ServletHolder(new PeersServlet()), "/peers");
@@ -111,19 +113,32 @@ public class HTTPService {
 		}
 	}
 
+	private class GetOthersWalletsServlet extends HttpServlet {
+		@Override
+		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			resp.setCharacterEncoding("UTF-8");
+			resp.getWriter().print("Others' Wallets:" + JSON.toJSONString(blockService.getOtherWalletMap().values()));
+		}
+	}
+
 	private class NewTransactionServlet extends HttpServlet {
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
 			TransactionParam txParam = JSON.parseObject(getReqBody(req), TransactionParam.class);
-
-			Wallet senderWallet = blockService.getMyWalletMap().get(txParam.getSender());
-			Wallet recipientWallet = blockService.getMyWalletMap().get(txParam.getRecipient());
+			resp.getWriter().print("txParam is:" + JSON.toJSONString(txParam));
 			int amount = txParam.getAmount();
 
+			Wallet senderWallet = blockService.getMyWalletMap().get(txParam.getSender());
+			// wallet can be mine or others
+			resp.getWriter().print("my Wallet");
+			Wallet recipientWallet = blockService.getMyWalletMap().get(txParam.getRecipient());
 			if (recipientWallet == null) {
+				resp.getWriter().print("others' Wallet");
 				recipientWallet = blockService.getOtherWalletMap().get(txParam.getRecipient());
 			}
+
+			resp.getWriter().print("Sender Wallet is:" + JSON.toJSONString(senderWallet) + " Receiver Wallet is:" + JSON.toJSONString(recipientWallet) + " amount is:" + amount);
 			if (senderWallet == null || recipientWallet == null) {
 				resp.getWriter().print("Wallet Not Exist");
 				return;
@@ -148,6 +163,7 @@ public class HTTPService {
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
 			String address = req.getParameter("address");
+			resp.getWriter().print("wallet address is:" + address + "\n");
 			resp.getWriter().print("Balance in Wallet is:" + blockService.getWalletBalance(address) + " LabCoin");
 		}
 	}
@@ -159,6 +175,14 @@ public class HTTPService {
 			List<Transaction> transactions = new ArrayList<>(blockService.getAllTransactions());
 			transactions.removeAll(blockService.getPackedTransactions());
 			resp.getWriter().print("UTXOs in the Node：" + JSON.toJSONString(transactions));
+		}
+	}
+	private class GetPackedTransactionServlet extends HttpServlet {
+		@Override
+		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			resp.setCharacterEncoding("UTF-8");
+			List<Transaction> packed = new ArrayList<>(blockService.getPackedTransactions());
+			resp.getWriter().print("packet transaction in the Node：" + JSON.toJSONString(packed));
 		}
 	}
 

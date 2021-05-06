@@ -6,6 +6,16 @@ import LabBlockChain.BlockChain.Helper.CoderHelper;
 import LabBlockChain.BlockChain.Helper.RSACoder;
 import com.google.gson.Gson;
 
+/**
+ * tx0-
+ * input output
+ *
+ * tx1-                  tx3
+ * input output          input output
+ *
+ * tx2-
+ * input output
+ */
 public class Transaction {
 	private String id;
 	private TransactionInput txIn;
@@ -98,12 +108,12 @@ public class Transaction {
 		return result;
 	}
 
-//	public String hash() {
-//		return CoderHelper.applySha256(JSON.toJSONString(this));
-//	}
 	public String hash() {
-		return CoderHelper.applySha256(new Gson().toJson(this));
+		return CoderHelper.applySha256(JSON.toJSONString(this));
 	}
+//	public String hash() {
+//		return CoderHelper.applySha256(new Gson().toJson(this));
+//	}
 
 	@Override
 	public int hashCode() {
