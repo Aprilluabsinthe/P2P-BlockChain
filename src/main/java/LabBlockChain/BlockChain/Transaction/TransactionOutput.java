@@ -1,5 +1,7 @@
 package LabBlockChain.BlockChain.Transaction;
 
+import LabBlockChain.BlockChain.Helper.CoderHelper;
+import LabBlockChain.BlockChain.basic.Wallet;
 import com.google.gson.Gson;
 
 public class TransactionOutput {
@@ -30,6 +32,16 @@ public class TransactionOutput {
 	public TransactionOutput(int value, String publicKeyHash) {
 		this.value = value;
 		this.publicKeyHash = publicKeyHash;
+	}
+
+	public boolean belongsToUser(String publicKey){
+		String hashPubKey = CoderHelper.applySha256(publicKey);
+		return hashPubKey == publicKeyHash;
+	}
+
+	public boolean belongsToWallet(Wallet wallet){
+		String hashPubKey = wallet.getHashPubKey();
+		return hashPubKey == publicKeyHash;
 	}
 
 	@Override

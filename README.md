@@ -43,7 +43,7 @@ make test
 - Mine(POST)
 
   ```
-  curl --data "address=9555D32727BD391C0A1B3FBE6C53FDBE" http://localhost:1234/mine
+  curl --data "address=78415FA4D1BCFFF8AFBE5DD5C565C144" http://localhost:1234/mine
   ```
 
 - Transaction(POST)

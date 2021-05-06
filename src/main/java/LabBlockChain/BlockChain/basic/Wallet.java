@@ -1,7 +1,9 @@
 package LabBlockChain.BlockChain.basic;
+import java.util.List;
 import java.util.Map;
 import LabBlockChain.BlockChain.Helper.CoderHelper;
 import LabBlockChain.BlockChain.Helper.RSACoder;
+import LabBlockChain.BlockChain.Transaction.Transaction;
 
 
 public class Wallet {

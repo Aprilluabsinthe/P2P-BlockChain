@@ -1,6 +1,7 @@
 package LabBlockChain.BlockChain.basic;
 import LabBlockChain.BlockChain.Transaction.*;
 import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -106,7 +107,9 @@ public class Block {
     }
 
     public String contentToHash(Block block){
+        Gson json = new Gson();
         return block.index + block.timestamp + JSON.toJSONString(block.transactions) + block.previousHash + block.nonce;
+//        return block.index + block.timestamp + json.toJson(block.transactions) + block.previousHash + block.nonce;
     }
 
     public String calculateHash(Block block) {

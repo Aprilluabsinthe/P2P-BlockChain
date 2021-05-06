@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="lab-4-failurefree_yuangu_dilu" target="15" />
+      <module name="lab-4-failurefree_yuangu_dilu" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

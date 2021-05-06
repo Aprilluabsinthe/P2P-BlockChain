@@ -10,14 +10,24 @@ import java.util.Set;
 import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Transaction.*;
 import LabBlockChain.BlockChain.Helper.CoderHelper;
+import com.google.gson.Gson;
 
-
+/***
+ * generate transaction
+ * signature
+ * broadcast
+ * verified and accepted by all peers
+ * verify minned Node and add to blockchain
+ * be verified by enough blocks
+ */
 public class BlockService implements BlockServiceInterface {
 	private List<Block> blockChain = new ArrayList<Block>();
 	private Map<String, Wallet> myWalletMap = new HashMap<>();
 	private Map<String, Wallet> otherWalletMap = new HashMap<>();
 	private List<Transaction> allTransactions = new ArrayList<>();
 	private List<Transaction> packedTransactions = new ArrayList<>();
+	private List<Transaction> UTXOs = new ArrayList<>();
+//	public Gson gson;
 
 	public BlockService() {
 		Block genesisBlock = new Block(
@@ -25,6 +35,8 @@ public class BlockService implements BlockServiceInterface {
 				1, "1", "1");
 		blockChain.add(genesisBlock);
 		System.out.println("Genesis Block：" + JSON.toJSONString(genesisBlock));
+//		System.out.println("Genesis Block：" + new Gson().toJson(genesisBlock));
+
 	}
 
 	/**
@@ -127,7 +139,7 @@ public class BlockService implements BlockServiceInterface {
 		}
 	}
 
-	private Block createNewBlock(int nonce, String previousHash, String hash, List<Transaction> transactions) {
+	private Block createNewBlock(List<Transaction> transactions,int nonce, String previousHash, String hash) {
 		Block block = new Block(blockChain.size() + 1, System.currentTimeMillis(), transactions, nonce, previousHash, hash);
 		if (addBlock(block)) {
 			return block;
@@ -144,6 +156,7 @@ public class BlockService implements BlockServiceInterface {
 
 	private String calculateFullHash(Block block) {
 		String toHash = block.getIndex() + block.getTimestamp() + JSON.toJSONString(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
+//		String toHash = block.getIndex() + block.getTimestamp() + new Gson().toJson(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
 		return CoderHelper.applySha256(toHash);
 	}
 
@@ -154,17 +167,17 @@ public class BlockService implements BlockServiceInterface {
 	 */
 	public Block mine(String toAddress) {
 		allTransactions.add(generateBaseTx(toAddress));
-		List<Transaction> blockTxs = new ArrayList<Transaction>(allTransactions);
-		blockTxs.removeAll(packedTransactions);
-		verifyAllTransactions(blockTxs);
+		List<Transaction> UTXOBlocks = new ArrayList<Transaction>(allTransactions);
+		UTXOBlocks.removeAll(packedTransactions);
+		verifyAllTransactions(UTXOBlocks);
 
 		String newBlockHash = "";
 		int nonce = 0;
 		long start = System.currentTimeMillis();
-		System.out.println("Start Mining");
+		System.out.println("Start Mining>>>>>>");
 		while (true) {
 //			newBlockHash = calculateFullHash(curBlock);
-			newBlockHash = calculateHash(getLatestBlock().getHash(), blockTxs, nonce);
+			newBlockHash = calculateHash(getLatestBlock().getHash(), UTXOBlocks, nonce);
 			if (isValidHash(newBlockHash)) {
 				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
@@ -174,47 +187,59 @@ public class BlockService implements BlockServiceInterface {
 			nonce++;
 		}
 
-		Block block = createNewBlock(nonce, getLatestBlock().getHash(), newBlockHash, blockTxs);
+		Block block = createNewBlock(UTXOBlocks,nonce, getLatestBlock().getHash(), newBlockHash);
 		return block;
 	}
 
 
-	private void verifyAllTransactions(List<Transaction> blockTxs) {
-		List<Transaction> invalidTxs = new ArrayList<>();
-		for (Transaction tx : blockTxs) {
+	private void verifyAllTransactions(List<Transaction> transactionList) {
+		for (Transaction tx : transactionList) {
 			if (!verifyTransaction(tx)) {
-				invalidTxs.add(tx);
+				transactionList.remove(tx);
+				allTransactions.remove(tx);
 			}
 		}
-		blockTxs.removeAll(invalidTxs);
-		allTransactions.removeAll(invalidTxs);
 	}
 
 	@Override
-	public Transaction generateBaseTx(String receiverAddr) {
+	public Transaction generateBaseTx(String receiverWallet) {
 		TransactionInput txIn = new TransactionInput("0", -1, null, null);
 		System.out.println("generateBaseTx txIn：" + txIn.toString());
-		Wallet wallet = myWalletMap.get(receiverAddr);
-		System.out.println("generateBaseTx myWalletMap：" + myWalletMap.toString());
-		TransactionOutput txOut = new TransactionOutput(10, wallet.getHashPubKey());
+
+		Wallet receiver = myWalletMap.get(receiverWallet);
+		System.out.println("generateBaseTx Wallet：" + myWalletMap.toString());
+		// mine reword = 10 Labcoin
+		TransactionOutput txOut = new TransactionOutput(10, receiver.getHashPubKey());
 		System.out.println("generateBaseTx txOut：" + txOut.toString());
 		String forHashId = txIn.toString() + txOut.toString();
-//		String id = CoderHelper.applySha256(forHashId);
-//		return new Transaction(CoderHelper.UUID(), txIn, txOut);
+
 		return new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 	}
 
 	@Override
-	public Transaction createTransaction(Wallet senderWallet, Wallet recipientWallet, int amount) {
+	public Transaction createTransaction(Wallet sender, Wallet receiver, int amount) {
+		if(getWalletBalance(sender.getAddress()) < amount){
+			System.out.println("#Not Enough funds to send transaction. Transaction Discarded.");
+			return null;
+		}
 
-		List<Transaction> unspentTxs = findUnspentTransactions(senderWallet.getAddress());
+		List<Transaction> senderUTXOs = findUTXOs(sender.getAddress());
 		Transaction prevTx = null;
-		if( unspentTxs != null){
-			for (Transaction transaction : unspentTxs) {
-				//TODO exchage
+		ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
+
+		if( senderUTXOs != null){
+			for (Transaction transaction : senderUTXOs) {
 				if (transaction.getTxOut().getValue() == amount) {
 					prevTx = transaction;
 					break;
+				}
+				// exchange
+				if(transaction.getTxOut().getValue() > amount){
+					prevTx = transaction;
+
+
+
+
 				}
 			}
 			if (prevTx == null) {
@@ -222,25 +247,27 @@ public class BlockService implements BlockServiceInterface {
 			}
 		}
 
-		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, senderWallet.getPublicKey());
-		TransactionOutput txOut = new TransactionOutput(amount, recipientWallet.getHashPubKey());
+		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, sender.getPublicKey());
+		TransactionOutput txOut = new TransactionOutput(amount, receiver.getHashPubKey());
 		String forHashId = txIn.toString() + txOut.toString();
 //		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
 		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
-		transaction.sign(senderWallet.getPrivateKey(), prevTx);
+		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
 		return transaction;
 	}
 
 
-	private List<Transaction> findUnspentTransactions(String address) {
+	public List<Transaction> findUTXOs(String address) {
 		List<Transaction> unspentTxs = new ArrayList<Transaction>();
 		Set<String> spentTxs = new HashSet<String>();
+
 		for (Transaction tx : allTransactions) {
-			if (tx.coinbaseTx()) {
+			if (tx.isBaseTx()) {
 				continue;
 			}
-			if (address.equals(Wallet.getAddress(tx.getTxIn().getPublicKey()))) {
+			String inTXpublickey = tx.getTxIn().getPublicKey();
+			if (address.equals(Wallet.getAddress( inTXpublickey ))) {
 				spentTxs.add(tx.getTxIn().getTxId());
 			}
 		}
@@ -248,14 +275,16 @@ public class BlockService implements BlockServiceInterface {
 		for (Block block : blockChain) {
 			List<Transaction> transactions = block.getTransactions();
 			for (Transaction tx : transactions) {
-				if (address.equals(CoderHelper.MD5(tx.getTxOut().getPublicKeyHash()))) {
+				String outTXpublickeyHash = tx.getTxOut().getPublicKeyHash();
+				String outTXAddress = CoderHelper.MD5(outTXpublickeyHash);
+				if (address.equals(outTXAddress)) {
 					if (!spentTxs.contains(tx.getId())) {
 						unspentTxs.add(tx);
 					}
 				}
 			}
 		}
-
+		this.UTXOs = unspentTxs;
 		return unspentTxs;
 	}
 
@@ -269,7 +298,7 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	private boolean verifyTransaction(Transaction tx) {
-		if (tx.coinbaseTx()) {
+		if (tx.isBaseTx()) {
 			return true;
 		}
 		Transaction prevTx = findTransaction(tx.getTxIn().getTxId());
@@ -288,7 +317,7 @@ public class BlockService implements BlockServiceInterface {
 
 	@Override
 	public int getWalletBalance(String address) {
-		List<Transaction> unspentTxs = findUnspentTransactions(address);
+		List<Transaction> unspentTxs = findUTXOs(address);
 		int balance = 0;
 		for (Transaction transaction : unspentTxs) {
 			balance += transaction.getTxOut().getValue();

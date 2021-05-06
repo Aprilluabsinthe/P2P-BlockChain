@@ -46,12 +46,13 @@ public class Transaction {
 		this.txOut = txOut;
 	}
 
-	public boolean coinbaseTx() {
+	public boolean isBaseTx() {
 		return txIn.getTxId().equals("0") && getTxIn().getValue() == -1;
 	}
 
+
 	public void sign(String privateKey, Transaction prevTx) {
-		if (coinbaseTx()) {
+		if (isBaseTx()) {
 			return;
 		}
 
@@ -77,7 +78,7 @@ public class Transaction {
 	}
 
 	public boolean verify(Transaction prevTx) {
-		if (coinbaseTx()) {
+		if (isBaseTx()) {
 			return true;
 		} 
 
@@ -97,8 +98,11 @@ public class Transaction {
 		return result;
 	}
 
+//	public String hash() {
+//		return CoderHelper.applySha256(JSON.toJSONString(this));
+//	}
 	public String hash() {
-		return CoderHelper.applySha256(JSON.toJSONString(this));
+		return CoderHelper.applySha256(new Gson().toJson(this));
 	}
 
 	@Override
