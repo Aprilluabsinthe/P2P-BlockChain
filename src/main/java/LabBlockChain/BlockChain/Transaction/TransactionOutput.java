@@ -1,6 +1,6 @@
 package LabBlockChain.BlockChain.Transaction;
 
-import LabBlockChain.BlockChain.Helper.CoderHelper;
+import LabBlockChain.BlockChain.Helper.Coder;
 import LabBlockChain.BlockChain.basic.Wallet;
 import com.google.gson.Gson;
 
@@ -35,7 +35,7 @@ public class TransactionOutput {
 	}
 
 	public boolean belongsToUser(String publicKey){
-		String hashPubKey = CoderHelper.applySha256(publicKey);
+		String hashPubKey = Coder.applySha256(publicKey);
 		return hashPubKey == publicKeyHash;
 	}
 

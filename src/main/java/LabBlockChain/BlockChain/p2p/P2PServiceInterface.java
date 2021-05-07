@@ -19,7 +19,7 @@ public interface P2PServiceInterface {
 
     void write(WebSocket ws, String message);
 
-    void broatcast(String message);
+    void broadcast(String message);
 
     String queryBlockChainMsg();
 

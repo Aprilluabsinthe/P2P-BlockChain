@@ -1,12 +1,11 @@
 package LabBlockChain.Block;
 
-import LabBlockChain.BlockChain.Helper.CoderHelper;
+import LabBlockChain.BlockChain.Helper.Coder;
 import LabBlockChain.BlockChain.Transaction.Transaction;
 import LabBlockChain.BlockChain.Transaction.TransactionInput;
 import LabBlockChain.BlockChain.Transaction.TransactionOutput;
 import LabBlockChain.BlockChain.basic.Block;
 import LabBlockChain.BlockChain.basic.Wallet;
-import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import org.junit.*;
 
@@ -43,14 +42,14 @@ public class BlockOperationTest {
         TransactionInput Intx = null;
         TransactionOutput Outtx = new TransactionOutput(amount,sender.getHashPubKey());
 //        String forHashId = Intx.toString() + Outtx.toString();
-        Transaction tx = new Transaction(CoderHelper.UUID(),Intx,Outtx);
+        Transaction tx = new Transaction(Coder.UUID(),Intx,Outtx);
         txlist.add(tx);
 
         // generate following transactions
         TransactionInput Intx_test = new TransactionInput(tx.getId(),amount,null,sender.getPublicKey());
         TransactionOutput Outtx_test = new TransactionOutput(amount,receiver.getHashPubKey());
-        String tx_testId = CoderHelper.applySha256(Intx_test.toString()+Outtx_test.toString());
-        Transaction tx_test = new Transaction(CoderHelper.UUID(),Intx_test,Outtx_test);
+        String tx_testId = Coder.applySha256(Intx_test.toString()+Outtx_test.toString());
+        Transaction tx_test = new Transaction(Coder.UUID(),Intx_test,Outtx_test);
         tx_test.sign(sender.getPrivateKey(),tx);
         txlist.add(tx_test);
 
@@ -61,7 +60,7 @@ public class BlockOperationTest {
         String hash;
         while(true){
             count += 1;
-            hash = CoderHelper.applySha256(
+            hash = Coder.applySha256(
                     lastBlock.getPreviousHash() + gson.toJson(lastBlock.getTransactions()) + nonce
             );
             System.out.println("nonce: "+ nonce +" hash: " +hash);

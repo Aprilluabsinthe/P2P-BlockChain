@@ -17,11 +17,13 @@ public class P2PServer {
 	private P2PServiceInterface p2PServiceInterface;
 	
 	public P2PServer(P2PServiceInterface p2PServiceInterface) {
-	    this.p2PServiceInterface = p2PServiceInterface;
+
+		this.p2PServiceInterface = p2PServiceInterface;
     }
 
 	public void initP2PServer(int port) {
 		final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
+			// call back methods
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
 				p2PServiceInterface.getSockets().add(webSocket);
 			}
@@ -40,10 +42,9 @@ public class P2PServer {
 				p2PServiceInterface.getSockets().remove(webSocket);
 			}
 
-			public void onStart() {
-
-			}
+			public void onStart() { }
 		};
+		// start socket
 		socketServer.start();
 		System.out.println("listening websocket LabBlockChain.basic.BlockChain.p2p port on: " + port);
 	}

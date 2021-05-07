@@ -5,7 +5,7 @@ import LabBlockChain.BlockChain.basic.Block;
 import LabBlockChain.BlockChain.p2p.MessageType;
 import LabBlockChain.BlockChain.p2p.P2PServiceInterface;
 import com.alibaba.fastjson.JSON;
-import LabBlockChain.BlockChain.basic.BlockService;
+import LabBlockChain.BlockChain.LabCoin.BlockChainImplement;
 import LabBlockChain.BlockChain.basic.Wallet;
 import LabBlockChain.BlockChain.p2p.Message;
 import org.eclipse.jetty.server.Server;
@@ -25,11 +25,11 @@ import java.util.List;
 
 
 public class HTTPService {
-	private BlockService blockService;
+	private BlockChainImplement blockChainOpr;
 	private P2PServiceInterface p2PServiceInterface;
 
-	public HTTPService(BlockService blockService, P2PServiceInterface p2PServiceInterface) {
-		this.blockService = blockService;
+	public HTTPService(BlockChainImplement blockChainOpr, P2PServiceInterface p2PServiceInterface) {
+		this.blockChainOpr = blockChainOpr;
 		this.p2PServiceInterface = p2PServiceInterface;
 	}
 
@@ -66,7 +66,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			resp.getWriter().print("Current BlockChain: " + JSON.toJSONString(blockService.getBlockChain()));
+			resp.getWriter().print("Current BlockChain: " + JSON.toJSONString(blockChainOpr.getBlockChain()));
 		}
 	}
 
@@ -75,20 +75,20 @@ public class HTTPService {
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
 			String address = req.getParameter("address");
-			Wallet myWallet = blockService.getMyWalletMap().get(address);
+			Wallet myWallet = blockChainOpr.getMyWalletMap().get(address);
 			System.out.println(myWallet);
 			if (myWallet == null) {
 				resp.getWriter().print("Wallet for Mining not exist");
 				return;
 			}
-			Block newBlock = blockService.mine(address);
+			Block newBlock = blockChainOpr.mine(address);
 			if (newBlock == null) {
 				resp.getWriter().print("Mining Failed;");
 				return;
 			}
 			Block[] blocks = {newBlock};
 			String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
-			p2PServiceInterface.broatcast(msg);
+			p2PServiceInterface.broadcast(msg);
 			resp.getWriter().print("New Block from Mining：" + JSON.toJSONString(newBlock));
 		}
 	}
@@ -97,10 +97,10 @@ public class HTTPService {
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			Wallet wallet = blockService.createWallet();
+			Wallet wallet = blockChainOpr.createWallet();
 			Wallet[] wallets = {new Wallet(wallet.getPublicKey())}; 
 			String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
-			p2PServiceInterface.broatcast(msg);
+			p2PServiceInterface.broadcast(msg);
 			resp.getWriter().print("Wallet Created! Wallet Address： " + wallet.getAddress());
 		}
 	}
@@ -109,7 +109,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			resp.getWriter().print("Current Wallet:" + JSON.toJSONString(blockService.getMyWalletMap().values()));
+			resp.getWriter().print("Current Wallet:" + JSON.toJSONString(blockChainOpr.getMyWalletMap().values()));
 		}
 	}
 
@@ -117,7 +117,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			resp.getWriter().print("Others' Wallets:" + JSON.toJSONString(blockService.getOtherWalletMap().values()));
+			resp.getWriter().print("Others' Wallets:" + JSON.toJSONString(blockChainOpr.getOtherWalletMap().values()));
 		}
 	}
 
@@ -129,13 +129,13 @@ public class HTTPService {
 			resp.getWriter().print("txParam is:" + JSON.toJSONString(txParam));
 			int amount = txParam.getAmount();
 
-			Wallet senderWallet = blockService.getMyWalletMap().get(txParam.getSender());
+			Wallet senderWallet = blockChainOpr.getMyWalletMap().get(txParam.getSender());
 			// wallet can be mine or others
 			resp.getWriter().print("my Wallet");
-			Wallet recipientWallet = blockService.getMyWalletMap().get(txParam.getRecipient());
+			Wallet recipientWallet = blockChainOpr.getMyWalletMap().get(txParam.getRecipient());
 			if (recipientWallet == null) {
 				resp.getWriter().print("others' Wallet");
-				recipientWallet = blockService.getOtherWalletMap().get(txParam.getRecipient());
+				recipientWallet = blockChainOpr.getOtherWalletMap().get(txParam.getRecipient());
 			}
 
 			resp.getWriter().print("Sender Wallet is:" + JSON.toJSONString(senderWallet) + " Receiver Wallet is:" + JSON.toJSONString(recipientWallet) + " amount is:" + amount);
@@ -144,7 +144,7 @@ public class HTTPService {
 				return;
 			}
 
-			Transaction newTransaction = blockService.createTransaction(senderWallet, recipientWallet, amount);
+			Transaction newTransaction = blockChainOpr.createTransaction(senderWallet, recipientWallet, amount);
 			if (newTransaction == null) {
 				resp.getWriter().print(
 				        "Wallet " + txParam.getSender() + " Do not have enough balance (require " + txParam.getAmount() + " LabCoin UTXO)");
@@ -153,7 +153,7 @@ public class HTTPService {
 				Transaction[] txs = {newTransaction}; 
 				String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON
 				        .toJSONString(txs)));
-				p2PServiceInterface.broatcast(msg);
+				p2PServiceInterface.broadcast(msg);
 			}
 		}
 	}
@@ -164,7 +164,7 @@ public class HTTPService {
 			resp.setCharacterEncoding("UTF-8");
 			String address = req.getParameter("address");
 			resp.getWriter().print("wallet address is:" + address + "\n");
-			resp.getWriter().print("Balance in Wallet is:" + blockService.getWalletBalance(address) + " LabCoin");
+			resp.getWriter().print("Balance in Wallet is:" + blockChainOpr.getWalletBalance(address) + " LabCoin");
 		}
 	}
 
@@ -172,8 +172,8 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			List<Transaction> transactions = new ArrayList<>(blockService.getAllTransactions());
-			transactions.removeAll(blockService.getPackedTransactions());
+			List<Transaction> transactions = new ArrayList<>(blockChainOpr.getAllTransactions());
+			transactions.removeAll(blockChainOpr.getPackedTransactions());
 			resp.getWriter().print("UTXOs in the Node：" + JSON.toJSONString(transactions));
 		}
 	}
@@ -181,7 +181,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			List<Transaction> packed = new ArrayList<>(blockService.getPackedTransactions());
+			List<Transaction> packed = new ArrayList<>(blockChainOpr.getPackedTransactions());
 			resp.getWriter().print("packet transaction in the Node：" + JSON.toJSONString(packed));
 		}
 	}
@@ -190,7 +190,7 @@ public class HTTPService {
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
-			List<Transaction> transactions = new ArrayList<>(blockService.getAllTransactions());
+			List<Transaction> transactions = new ArrayList<>(blockChainOpr.getAllTransactions());
 			resp.getWriter().print("all Transactions in the Node：" + JSON.toJSONString(transactions));
 		}
 	}

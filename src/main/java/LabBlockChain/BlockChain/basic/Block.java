@@ -10,34 +10,29 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ *     //******************************************************
+ *     // ***************______________________*****************
+ *     // ***************|        index       |*****************
+ *     // ***************|        hash        |*****************
+ *     // ***************|    previousHash    |*****************
+ *     // ***************|       timestamp    |*****************
+ *     // ***************|        nonce       |*****************
+ *     // ***************|____________________|*****************
+ *     // ***************|____transactions____|*****************
+ *     // ***************|   Transaction1->   |*****************
+ *     // ***************|    ->Transaction2->|*****************
+ *     // ***************|    ->Transaction3  |*****************
+ *     // ***************|____________________|*****************
+ */
 public class Block {
     private final static int DIFFICULTY = 3;
-
-    //******************************************************
-    // ***************______________________*****************
-    // ***************|        index       |*****************
-    // ***************|        hash        |*****************
-    // ***************|    previousHash    |*****************
-    // ***************|       timestamp    |*****************
-    // ***************|        nonce       |*****************
-    // ***************|____________________|*****************
-    // ***************|____transactions____|*****************
-    // ***************|   Transaction1->   |*****************
-    // ***************|    ->Transaction2->|*****************
-    // ***************|    ->Transaction3  |*****************
-    // ***************|____________________|*****************
-
-    //******************************************************
     private int index;
     private String hash;
     private String previousHash;
     private long timestamp;
     private List<Transaction> transactions;
     private int nonce;
-
-    public Block() {
-        super();
-    }
 
     public Block(int index, long timestamp, List<Transaction> transactions, int nonce, String previousHash, String hash) {
         this.index = index;
@@ -51,54 +46,59 @@ public class Block {
     //******************************************************
     // ***************  Getter and Setter  *****************
     //******************************************************
+
+    /**
+     * Getter for index
+     * @return index
+     */
     public int getIndex() {
         return index;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
+    /**
+     * Getter for timestamp
+     * @return timestamp
+     */
     public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
+    /**
+     * Getter for transactions
+     * @return transactions
+     */
     public List<Transaction> getTransactions() {
         return transactions;
     }
 
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
+    /**
+     * Getter for nonce
+     * @return nonce
+     */
     public int getNonce() {
         return nonce;
     }
 
-    public void setNonce(int nonce) {
-        this.nonce = nonce;
-    }
-
+    /**
+     * Getter for previousHash
+     * @return previousHash
+     */
     public String getPreviousHash() {
         return previousHash;
     }
 
-    public void setPreviousHash(String previousHash) {
-        this.previousHash = previousHash;
-    }
-
+    /**
+     * Getter for hash
+     * @return hash
+     */
     public String getHash() {
         return hash;
     }
 
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
+    /**
+     * Generete target string of PoW
+     * @return String of PoW
+     */
     public static String provOfWorkZeros() {
         char[] c = new char[DIFFICULTY];
         Arrays.fill(c, '0');
@@ -106,12 +106,21 @@ public class Block {
         return result;
     }
 
+    /**
+     * the String to calculate Hash
+     * @param block the block to be calculated
+     * @return
+     */
     public String contentToHash(Block block){
         Gson json = new Gson();
         return block.index + block.timestamp + JSON.toJSONString(block.transactions) + block.previousHash + block.nonce;
-//        return block.index + block.timestamp + json.toJson(block.transactions) + block.previousHash + block.nonce;
     }
 
+    /**
+     * SHA256 Hash for block
+     * @param block block to calculate hash
+     * @return String of Hash
+     */
     public String calculateHash(Block block) {
         String record = contentToHash(block);
         MessageDigest digest = DigestUtils.getSha256Digest();

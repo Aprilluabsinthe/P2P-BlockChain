@@ -1,6 +1,6 @@
 package LabBlockChain.BlockChain;
 
-import LabBlockChain.BlockChain.basic.BlockService;
+import LabBlockChain.BlockChain.LabCoin.BlockChainImplement;
 import LabBlockChain.BlockChain.http.HTTPService;
 import LabBlockChain.BlockChain.p2p.P2PClient;
 import LabBlockChain.BlockChain.p2p.P2PServer;
@@ -12,10 +12,10 @@ public class Main {
 	public static void main(String[] args) {
 		if (args != null && (args.length == 1 || args.length == 2 || args.length == 3)) {
 			try {
-				BlockService blockService = new BlockService();
-				P2PServiceInterface p2PServiceInterface = new P2PService(blockService);
+				BlockChainImplement blockChainOpr = new BlockChainImplement();
+				P2PServiceInterface p2PServiceInterface = new P2PService(blockChainOpr);
 				startP2PServer(args, p2PServiceInterface);
-				HTTPService httpService = new HTTPService(blockService, p2PServiceInterface);
+				HTTPService httpService = new HTTPService(blockChainOpr, p2PServiceInterface);
 				int httpPort = Integer.valueOf(args[0]);
 				httpService.initHTTPServer(httpPort);
 			} catch (Exception e) {

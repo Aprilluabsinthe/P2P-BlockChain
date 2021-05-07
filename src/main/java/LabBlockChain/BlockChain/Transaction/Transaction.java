@@ -2,8 +2,7 @@ package LabBlockChain.BlockChain.Transaction;
 
 
 import com.alibaba.fastjson.JSON;
-import LabBlockChain.BlockChain.Helper.CoderHelper;
-import LabBlockChain.BlockChain.Helper.RSACoder;
+import LabBlockChain.BlockChain.Helper.Coder;
 import com.google.gson.Gson;
 
 /**
@@ -74,7 +73,7 @@ public class Transaction {
 		txClone.getTxIn().setPublicKey(prevTx.getTxOut().getPublicKeyHash());
 		String sign = "";
 		try {
-			sign = RSACoder.sign(txClone.hash().getBytes(), privateKey);
+			sign = Coder.MD5RSAsign(txClone.hash().getBytes(), privateKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -101,7 +100,7 @@ public class Transaction {
 
 		boolean result = false;
 		try {
-			result = RSACoder.verify(txClone.hash().getBytes(), txIn.getPublicKey(), txIn.getSignature());
+			result = Coder.verify(txClone.hash().getBytes(), txIn.getPublicKey(), txIn.getSignature());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -109,7 +108,7 @@ public class Transaction {
 	}
 
 	public String hash() {
-		return CoderHelper.applySha256(JSON.toJSONString(this));
+		return Coder.applySha256(JSON.toJSONString(this));
 	}
 //	public String hash() {
 //		return CoderHelper.applySha256(new Gson().toJson(this));

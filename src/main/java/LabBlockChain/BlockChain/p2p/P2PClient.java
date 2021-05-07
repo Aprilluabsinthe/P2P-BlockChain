@@ -21,6 +21,7 @@ public class P2PClient {
     }
 
 	public void connectToPeer(String peer) {
+		// peer be like ws://localhost:port
 		try {
 			final WebSocketClient socketClient = new WebSocketClient(new URI(peer)) {
 				@Override

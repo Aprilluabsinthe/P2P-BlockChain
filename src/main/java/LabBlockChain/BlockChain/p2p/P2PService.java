@@ -3,7 +3,7 @@ package LabBlockChain.BlockChain.p2p;
 import LabBlockChain.BlockChain.basic.Block;
 import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Transaction.Transaction;
-import LabBlockChain.BlockChain.basic.BlockService;
+import LabBlockChain.BlockChain.LabCoin.BlockChainImplement;
 import LabBlockChain.BlockChain.basic.Wallet;
 import org.java_websocket.WebSocket;
 
@@ -15,11 +15,11 @@ import java.util.List;
 
 public class P2PService implements P2PServiceInterface {
 	private List<WebSocket> sockets;
-	private BlockService blockService;
+	private BlockChainImplement blockChainOpr;
 	MessageType type;
 
-	public P2PService(BlockService blockService) {
-		this.blockService = blockService;
+	public P2PService(BlockChainImplement blockChainOpr) {
+		this.blockChainOpr = blockChainOpr;
 		this.sockets = new ArrayList<WebSocket>();
 	}
 	
@@ -78,18 +78,18 @@ public class P2PService implements P2PServiceInterface {
 		});
 
 		Block latestBlockReceived = receiveBlockchain.get(receiveBlockchain.size() - 1);
-		Block latestBlock = blockService.getLatestBlock();
+		Block latestBlock = blockChainOpr.getLatestBlock();
 		if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
 			if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
 				System.out.println("Add new block to chain");
-				if (blockService.addBlock(latestBlockReceived)) {
-					broatcast(responseLatestBlockMsg());
+				if (blockChainOpr.addBlock(latestBlockReceived)) {
+					broadcast(responseLatestBlockMsg());
 				}
 			} else if (receiveBlockchain.size() == 1) {
 				System.out.println("query for all blockchain");
-				broatcast(queryBlockChainMsg());
+				broadcast(queryBlockChainMsg());
 			} else {
-				blockService.replaceChain(receiveBlockchain);
+				blockChainOpr.replaceChain(receiveBlockchain);
 			}
 		} else {
 			System.out.println("Peer Blockchain no longer than local, not adopt.");
@@ -100,20 +100,20 @@ public class P2PService implements P2PServiceInterface {
 	public void handleWalletResponse(String message) {
 		List<Wallet> wallets = JSON.parseArray(message, Wallet.class);
 		wallets.forEach(wallet -> {
-			blockService.getOtherWalletMap().put(wallet.getAddress(), wallet);
+			blockChainOpr.getOtherWalletMap().put(wallet.getAddress(), wallet);
 		});
 	}
 
 	@Override
 	public void handleTransactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
-		blockService.getAllTransactions().addAll(txs);
+		blockChainOpr.getAllTransactions().addAll(txs);
 	}
 	
 	@Override
 	public void handlePackedTransactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
-		blockService.getPackedTransactions().addAll(txs);
+		blockChainOpr.getPackedTransactions().addAll(txs);
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class P2PService implements P2PServiceInterface {
 	}
 
 	@Override
-	public void broatcast(String message) {
+	public void broadcast(String message) {
 		if (sockets.size() == 0) {
 			return;
 		}
@@ -161,32 +161,32 @@ public class P2PService implements P2PServiceInterface {
 
 	@Override
 	public String responseBlockChainMsg() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blockService.getBlockChain())));
+		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blockChainOpr.getBlockChain())));
 	}
 
 	@Override
 	public String responseLatestBlockMsg() {
-		Block[] blocks = { blockService.getLatestBlock() };
+		Block[] blocks = { blockChainOpr.getLatestBlock() };
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
 	}
 	
 	@Override
 	public String responseTransactions() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON.toJSONString(blockService.getAllTransactions())));
+		return JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getAllTransactions())));
 	}
 	
 	@Override
 	public String responsePackedTransactions() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_PACKED_TRANSACTION.value, JSON.toJSONString(blockService.getPackedTransactions())));
+		return JSON.toJSONString(new Message(MessageType.RESPONSE_PACKED_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getPackedTransactions())));
 	}
 	
 	@Override
 	public String responseWallets() {
 		List<Wallet> wallets = new ArrayList<Wallet>();
-		blockService.getMyWalletMap().forEach((address,wallet) -> {
+		blockChainOpr.getMyWalletMap().forEach((address, wallet) -> {
 			wallets.add(new Wallet(wallet.getPublicKey()));
 		});
-		blockService.getOtherWalletMap().forEach((address,wallet) -> {
+		blockChainOpr.getOtherWalletMap().forEach((address, wallet) -> {
 			wallets.add(wallet);
 		});
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));

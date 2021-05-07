@@ -1,11 +1,13 @@
-package LabBlockChain.BlockChain.basic;
+package LabBlockChain.BlockChain.LabCoin;
 
 import LabBlockChain.BlockChain.Transaction.Transaction;
+import LabBlockChain.BlockChain.basic.Block;
+import LabBlockChain.BlockChain.basic.Wallet;
 
 import java.util.List;
 import java.util.Map;
 
-public interface BlockServiceInterface {
+public interface BlockChainInterface {
     Block getLatestBlock();
 
     boolean addBlock(Block newBlock);

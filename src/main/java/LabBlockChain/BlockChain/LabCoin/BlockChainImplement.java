@@ -1,4 +1,4 @@
-package LabBlockChain.BlockChain.basic;
+package LabBlockChain.BlockChain.LabCoin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import LabBlockChain.BlockChain.Helper.Coder;
+import LabBlockChain.BlockChain.basic.Block;
+import LabBlockChain.BlockChain.basic.Wallet;
 import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Transaction.*;
-import LabBlockChain.BlockChain.Helper.CoderHelper;
 import com.google.gson.Gson;
 
 /***
@@ -20,7 +22,7 @@ import com.google.gson.Gson;
  * verify minned Node and add to blockchain
  * be verified by enough blocks
  */
-public class BlockService implements BlockServiceInterface {
+public class BlockChainImplement implements BlockChainInterface {
 	private final static int SYS_REWARD = 10;
 	private List<Block> blockChain = new ArrayList<Block>();
 	private Map<String, Wallet> myWalletMap = new HashMap<>();
@@ -38,7 +40,7 @@ public class BlockService implements BlockServiceInterface {
 	 * nouce is 1,
 	 * previous hash string ans hash string equals to 1
 	 */
-	public BlockService() {
+	public BlockChainImplement() {
 		Block genesisBlock = new Block(
 				1, System.currentTimeMillis(), new ArrayList<Transaction>(),
 				1, "1", "1");
@@ -188,7 +190,7 @@ public class BlockService implements BlockServiceInterface {
 	 * @return
 	 */
 	private String calculateHash(String previousHash, List<Transaction> currentTransactions, int nonce) {
-		return CoderHelper.applySha256(
+		return Coder.applySha256(
 				previousHash + JSON.toJSONString(currentTransactions) + nonce
 		);
 	}
@@ -200,7 +202,7 @@ public class BlockService implements BlockServiceInterface {
 	 */
 	private String calculateFullHash(Block block) {
 		String toHash = block.getIndex() + block.getTimestamp() + JSON.toJSONString(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
-		return CoderHelper.applySha256(toHash);
+		return Coder.applySha256(toHash);
 	}
 
 	/**
@@ -283,7 +285,7 @@ public class BlockService implements BlockServiceInterface {
 		TransactionOutput txOut = new TransactionOutput(SYS_REWARD, receiver.getHashPubKey());
 		System.out.println("generateBaseTx txOut：" + txOut.toString());
 		String forHashId = txIn.toString() + txOut.toString();
-		return new Transaction(CoderHelper.UUID(), txIn, txOut);
+		return new Transaction(Coder.UUID(), txIn, txOut);
 	}
 
 	/**
@@ -326,7 +328,7 @@ public class BlockService implements BlockServiceInterface {
 		// transaction of amount
 		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, sender.getPublicKey());
 		TransactionOutput txOut = new TransactionOutput(amount, receiver.getHashPubKey());
-		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
+		Transaction transaction = new Transaction(Coder.UUID(), txIn, txOut);
 		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
 
@@ -337,8 +339,8 @@ public class BlockService implements BlockServiceInterface {
 //		TransactionOutput txOut_exchange = new TransactionOutput(exchange, sender.getHashPubKey());
 ////		String forHashId_exchange = txIn.toString() + txOut.toString();
 //		Transaction transaction_exchange = new Transaction(CoderHelper.UUID(), txIn_exchange, txOut_exchange);
-////		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
-//		transaction_exchange.sign(sender.getPrivateKey(), transaction);
+////		Transaction transaction = new Transaction(Coder.applySha256(forHashId), txIn, txOut);
+//		transaction_exchange.MD5RSAsign(sender.getPrivateKey(), transaction);
 //		allTransactions.add(transaction_exchange);
 
 		return transaction;
@@ -371,7 +373,7 @@ public class BlockService implements BlockServiceInterface {
 			List<Transaction> transactions = block.getTransactions();
 			for (Transaction tx : transactions) {
 				String outTXpublickeyHash = tx.getTxOut().getPublicKeyHash();
-				String outTXAddress = CoderHelper.MD5(outTXpublickeyHash);
+				String outTXAddress = Coder.decodeMD5(outTXpublickeyHash);
 				if (address.equals(outTXAddress)) {
 					if (!spentTxs.contains(tx.getId())) {
 						unspentTxs.add(tx);
