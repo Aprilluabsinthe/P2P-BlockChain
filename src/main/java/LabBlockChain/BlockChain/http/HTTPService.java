@@ -87,7 +87,8 @@ public class HTTPService {
 				return;
 			}
 			Block[] blocks = {newBlock};
-			String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
+			String msg = JSON.toJSONString(
+					new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
 			p2PServiceInterface.broadcast(msg);
 			resp.getWriter().print("New Block from Mining：" + JSON.toJSONString(newBlock));
 		}
@@ -99,7 +100,8 @@ public class HTTPService {
 			resp.setCharacterEncoding("UTF-8");
 			Wallet wallet = blockChainOpr.createWallet();
 			Wallet[] wallets = {new Wallet(wallet.getPublicKey())}; 
-			String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
+			String msg = JSON.toJSONString(
+					new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
 			p2PServiceInterface.broadcast(msg);
 			resp.getWriter().print("Wallet Created! Wallet Address： " + wallet.getAddress());
 		}

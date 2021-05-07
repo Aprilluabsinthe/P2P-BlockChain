@@ -72,8 +72,24 @@ public class Wallet {
     public String getHashPubKey() {
         return Coder.applySha256(publicKey);
     }
+
     public static String hashPubKey(String publicKey) {
         return Coder.applySha256(publicKey);
     }
 
+    @Override
+    public String toString() {
+        return "Wallet{" +
+                "publicKey='" + publicKey + '\'' +
+                ", privateKey='" + privateKey + '\'' +
+                '}';
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
 }

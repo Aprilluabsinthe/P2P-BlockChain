@@ -132,18 +132,60 @@ public abstract class Coder {
 	}
 
 	public static String applySha256(String str) {
-		MessageDigest digest;
+//		MessageDigest digest = DigestUtils.getSha256Digest();
+//		String encodeStr = "";
+//		byte[] hash = new byte[0];
+//		digest = DigestUtils.getSha256Digest();
+//		byte[] hash = digest.digest(StringUtils.getBytesUtf8(str));
+//		encodeStr = Hex.encodeHexString(hash);
+
+//		MessageDigest digest = DigestUtils.getSha256Digest();
+//		byte[] hash = digest.digest(StringUtils.getBytesUtf8(input));
+//		return Hex.encodeHexString(hash);
+
+//		try {
+//			digest = DigestUtils.getSha256Digest();
+//		}catch (Exception e) {
+//			System.out.println("getSHA256 is error getSha256Digest");
+//		}
+//		try {
+//			hash = digest.digest(StringUtils.getBytesUtf8(str));
+//		}catch (Exception e) {
+//			System.out.println("str:"+str);
+//			e.printStackTrace();
+//			System.out.println("getSHA256 is error digest getBytesUtf8");
+//		}
+//		try{
+//			encodeStr = Hex.encodeHexString(hash);
+//		} catch (Exception e) {
+//			System.out.println("getSHA256 is error encodeHexString");
+//		}
+//		return encodeStr;
+		MessageDigest messageDigest;
 		String encodeStr = "";
 		try {
-			digest = DigestUtils.getSha256Digest();
-			byte[] hash = digest.digest(StringUtils.getBytesUtf8(str));
-			encodeStr = Hex.encodeHexString(hash);
+			messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update(str.getBytes("UTF-8"));
+			encodeStr = byte2Hex(messageDigest.digest());
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("getSHA256 is error" + e.getMessage());
 		}
 		return encodeStr;
 	}
 
+	private static String byte2Hex(byte[] bytes) {
+		StringBuilder builder = new StringBuilder();
+		String temp;
+		for (int i = 0; i < bytes.length; i++) {
+			temp = Integer.toHexString(bytes[i] & 0xFF);
+			if (temp.length() == 1) {
+				builder.append("0");
+			}
+			builder.append(temp);
+		}
+		return builder.toString();
+	}
 
 	public static String decodeMD5(String str) {
 		try {
@@ -151,7 +193,7 @@ public abstract class Coder {
 			char[] chars = new char[]{'0','1','2','3',
 					'4','5','6','7','8','9','A','B','C','D','E','F'};
 			byte [] bytes = str.getBytes();
-			MessageDigest messageDigest = MessageDigest.getInstance("decodeMD5");
+			MessageDigest messageDigest = MessageDigest.getInstance("MD5");
 			byte[] targ = messageDigest.digest(bytes);
 			for(byte b:targ) {
 				buffer.append(chars[(b>>4)&0x0F]);

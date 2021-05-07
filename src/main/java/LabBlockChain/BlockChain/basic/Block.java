@@ -43,9 +43,38 @@ public class Block {
         this.hash = hash;
     }
 
+
     //******************************************************
     // ***************  Getter and Setter  *****************
     //******************************************************
+
+    public static int getDIFFICULTY() {
+        return DIFFICULTY;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public void setPreviousHash(String previousHash) {
+        this.previousHash = previousHash;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
+    }
 
     /**
      * Getter for index

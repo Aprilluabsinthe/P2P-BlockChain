@@ -32,7 +32,7 @@ public class P2PService implements P2PServiceInterface {
 	public void handleMessage(WebSocket webSocket, String msg, List<WebSocket> sockets) {
 		try {
 			Message message = JSON.parseObject(msg, Message.class);
-			System.out.println("Received from" + webSocket.getRemoteSocketAddress().getPort() + "P2P Message"
+			System.out.println("Received from " + webSocket.getRemoteSocketAddress().getPort() + " P2P Message "
 			        + JSON.toJSONString(message));
 			switch (message.getType()) {
 			case 0:
@@ -99,7 +99,13 @@ public class P2PService implements P2PServiceInterface {
 	@Override
 	public void handleWalletResponse(String message) {
 		List<Wallet> wallets = JSON.parseArray(message, Wallet.class);
+		System.out.println("wallets wallets:" + wallets.toString() + "\n");
 		wallets.forEach(wallet -> {
+			System.out.println("wallet json:" + wallet+ "\n");
+			System.out.println("wallet getAddress:" + wallet.getAddress()+ "\n");
+			System.out.println("wallet getPublicKey:" + wallet.getPublicKey()+ "\n");
+			System.out.println("wallet getHashPubKey:" + wallet.getHashPubKey()+ "\n");
+			System.out.println("wallet toString:" + wallet.toString()+ "\n");
 			blockChainOpr.getOtherWalletMap().put(wallet.getAddress(), wallet);
 		});
 	}
