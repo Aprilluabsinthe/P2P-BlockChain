@@ -21,6 +21,7 @@ import com.google.gson.Gson;
  * be verified by enough blocks
  */
 public class BlockService implements BlockServiceInterface {
+	private final static int SYS_REWARD = 10;
 	private List<Block> blockChain = new ArrayList<Block>();
 	private Map<String, Wallet> myWalletMap = new HashMap<>();
 	private Map<String, Wallet> otherWalletMap = new HashMap<>();
@@ -29,6 +30,14 @@ public class BlockService implements BlockServiceInterface {
 	private List<Transaction> UTXOs = new ArrayList<>();
 //	public Gson gson;
 
+	/**
+	 * generate genesisBlock
+	 * The genesis Block's index starts from 1,
+	 * timestamp is current time,
+	 * transaction is null,
+	 * nouce is 1,
+	 * previous hash string ans hash string equals to 1
+	 */
 	public BlockService() {
 		Block genesisBlock = new Block(
 				1, System.currentTimeMillis(), new ArrayList<Transaction>(),
@@ -41,7 +50,7 @@ public class BlockService implements BlockServiceInterface {
 
 	/**
 	 * get LastBlock
-	 * @return
+	 * @return the last block
 	 */
 	@Override
 	public Block getLatestBlock() {
@@ -49,8 +58,8 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	/**
-	 * add new Block
-	 * @param newBlock
+	 * add new Block to blockchain, add all transactions to the packed list
+	 * @param newBlock the new block
 	 */
 	@Override
 	public boolean addBlock(Block newBlock) {
@@ -63,7 +72,15 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	/**
-	 * validate new Block
+	 * the new Block is valid or not
+	 * the current <code>prevHash</code> should equals to the <code>hash</code> of the previous block
+	 * the current <code>index</code> should be the previous <code>index+1</code>
+	 * the current hash should
+	 * 1) match hash calculation: equals to the SHA256 hash of PreviousHash, Transactions, Nonce
+	 * 2) match Proof-of-work: start with [0] * DIFFICULTY
+	 * @param curBlock current block
+	 * @param prevBlock previous block
+	 * @return
 	 */
 	@Override
 	public boolean isValidBlock(Block curBlock, Block prevBlock) {
@@ -77,7 +94,6 @@ public class BlockService implements BlockServiceInterface {
 		}
 		else {
 			String hash = calculateHash(curBlock.getPreviousHash(), curBlock.getTransactions(), curBlock.getNonce());
-//			String hash = calculateFullHash(curBlock);
 			if (!hash.equals(curBlock.getHash())) {
 				System.out.println("New hash " + hash + " not match " + curBlock.getHash());
 				return false;
@@ -90,15 +106,20 @@ public class BlockService implements BlockServiceInterface {
 		return true;
 	}
 
+	/**
+	 * if the chain is valid or not
+	 * @param chain the block chain
+	 *      //  outerindex     0            1       2      3       4        5
+	 * 		//  innerindex     1            2       3      4       5        6
+	 * 		//           genesis block | block | block | block | block | block |
+	 * 		//             prev           cur
+	 * @return True if valid, False if not
+	 */
 	private boolean isValidChain(List<Block> chain) {
-		//  outerindex     0            1       2      3       4        5
-		//  innerindex     1            2       3      4       5        6
-		//           genesis block | block | block | block | block | block |
-		//             prev           cur
-		Block curBlock = null;
+		Block curBlock;
 		Block prevBlock = chain.get(0);
 		int iter = 1;
-
+		// validate a block with the previous block
 		while (iter < chain.size()) {
 			curBlock = chain.get(iter);
 			if (!isValidBlock(curBlock, prevBlock)) {
@@ -111,9 +132,8 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	/**
-	 * check if hash starts with difficulty
-	 *
-	 * @param hash
+	 * check if hash starts with [0]*difficulty
+	 * @param hash the hash String
 	 * @return
 	 */
 	private boolean isValidHash(String hash) {
@@ -127,18 +147,30 @@ public class BlockService implements BlockServiceInterface {
 	 */
 	@Override
 	public void replaceChain(List<Block> newBlocks) {
-		if (isValidChain(newBlocks) && newBlocks.size() > blockChain.size()) {
-			blockChain = newBlocks;
-			packedTransactions.clear();
-			for(Block block:blockChain){
-				packedTransactions.addAll(block.getTransactions());
+		if (isValidChain(newBlocks)) {
+			if( newBlocks.size() > blockChain.size() ||
+					(newBlocks.size() == blockChain.size() &&
+					newBlocks.get(newBlocks.size()-1).getTimestamp() < getLatestBlock().getTimestamp()) ){
+				blockChain = newBlocks;
+				packedTransactions.clear();
+				for(Block block:blockChain){
+					packedTransactions.addAll(block.getTransactions());
+				}
 			}
 		}
 		else {
-			System.out.println("Peer Blockchain not adopted;");
+			System.out.println("Not a Valid Chain, Peer Blockchain not adopted;");
 		}
 	}
 
+	/**
+	 * Create a New Block
+	 * @param transactions A list of Transactions
+	 * @param nonce random number
+	 * @param previousHash Hash of the previous Block
+	 * @param hash hash of the current block
+	 * @return
+	 */
 	private Block createNewBlock(List<Transaction> transactions,int nonce, String previousHash, String hash) {
 		Block block = new Block(blockChain.size() + 1, System.currentTimeMillis(), transactions, nonce, previousHash, hash);
 		if (addBlock(block)) {
@@ -148,27 +180,41 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 
+	/**
+	 * Calculate the Block SHA256 Hash according to <code>previousHash,currentTransactions,nonce</code>
+	 * @param previousHash
+	 * @param currentTransactions
+	 * @param nonce
+	 * @return
+	 */
 	private String calculateHash(String previousHash, List<Transaction> currentTransactions, int nonce) {
 		return CoderHelper.applySha256(
 				previousHash + JSON.toJSONString(currentTransactions) + nonce
 		);
 	}
 
+	/**
+	 * Calculate the Block SHA256 Hash according to <code>getIndex,getTimestamp,previousHash,Transactions,nonce</code>
+	 * @param block
+	 * @return
+	 */
 	private String calculateFullHash(Block block) {
 		String toHash = block.getIndex() + block.getTimestamp() + JSON.toJSONString(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
-//		String toHash = block.getIndex() + block.getTimestamp() + new Gson().toJson(block.getTransactions()) + block.getPreviousHash() + block.getNonce();
 		return CoderHelper.applySha256(toHash);
 	}
 
 	/**
 	 * Mine a new block
-	 * @param toAddress
+	 * @param toAddress the Address of the Wallet
 	 * @return
 	 */
 	public Block mine(String toAddress) {
+		// add base coin(system reward for mining)
 		allTransactions.add(generateBaseTx(toAddress));
+		// get UTXO blocks
 		List<Transaction> UTXOBlocks = new ArrayList<Transaction>(allTransactions);
 		UTXOBlocks.removeAll(packedTransactions);
+		// ensure UTXOs are valid
 		verifyAllTransactions(UTXOBlocks);
 
 		String newBlockHash = "";
@@ -176,6 +222,7 @@ public class BlockService implements BlockServiceInterface {
 		long start = System.currentTimeMillis();
 		System.out.println("Start Mining>>>>>>");
 
+		// mine until hash meets the requirements of PoW
 		while (true) {
 			newBlockHash = calculateHash(getLatestBlock().getHash(), UTXOBlocks, nonce);
 			if (isValidHash(newBlockHash)) {
@@ -194,6 +241,10 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 
+	/**
+	 * Verify each transaction
+	 * @param transactionList
+	 */
 	private void verifyAllTransactions(List<Transaction> transactionList) {
 		for (Transaction tx : transactionList) {
 			if (!verifyTransaction(tx)) {
@@ -204,9 +255,22 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 	/**
+	 * verify Transaction, match the recordof previous transaction
+	 * @param tx the transaction
+	 * @return true if is valid
+	 */
+	private boolean verifyTransaction(Transaction tx) {
+		if (tx.isBaseTx()) {
+			return true;
+		}
+		Transaction prevTx = getTransaction(tx.getTxIn().getTxId());
+		return tx.verify(prevTx);
+	}
+
+	/**
 	 * system base transaction, have only output, no input, no signaturexs
 	 * @param receiverWallet
-	 * @return
+	 * @return system reward base transaction
 	 */
 	@Override
 	public Transaction generateBaseTx(String receiverWallet) {
@@ -215,15 +279,20 @@ public class BlockService implements BlockServiceInterface {
 
 		Wallet receiver = myWalletMap.get(receiverWallet);
 		System.out.println("generateBaseTx Wallet：" + myWalletMap.toString());
-		// mine reword = 10 Labcoin
-		TransactionOutput txOut = new TransactionOutput(10, receiver.getHashPubKey());
+		// mine reword is SYS_REWARD
+		TransactionOutput txOut = new TransactionOutput(SYS_REWARD, receiver.getHashPubKey());
 		System.out.println("generateBaseTx txOut：" + txOut.toString());
 		String forHashId = txIn.toString() + txOut.toString();
 		return new Transaction(CoderHelper.UUID(), txIn, txOut);
-
-//		return new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 	}
 
+	/**
+	 * Create new Transaction
+	 * @param sender the wallet of the sender
+	 * @param receiver the wallet of the receiver
+	 * @param amount the transaction output amount
+	 * @return
+	 */
 	@Override
 	public Transaction createTransaction(Wallet sender, Wallet receiver, int amount) {
 		if(getWalletBalance(sender.getAddress()) < amount){
@@ -257,9 +326,7 @@ public class BlockService implements BlockServiceInterface {
 		// transaction of amount
 		TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, sender.getPublicKey());
 		TransactionOutput txOut = new TransactionOutput(amount, receiver.getHashPubKey());
-//		String forHashId = txIn.toString() + txOut.toString();
 		Transaction transaction = new Transaction(CoderHelper.UUID(), txIn, txOut);
-//		Transaction transaction = new Transaction(CoderHelper.applySha256(forHashId), txIn, txOut);
 		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
 
@@ -278,10 +345,16 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 
+	/**
+	 * Find unpacked transactions
+	 * @param address
+	 * @return
+	 */
 	public List<Transaction> findUTXOs(String address) {
 		List<Transaction> unspentTxs = new ArrayList<Transaction>();
 		Set<String> spentTxs = new HashSet<String>();
 
+		// find all transactions that was made by myself
 		for (Transaction tx : allTransactions) {
 			if (tx.isBaseTx()) {
 				continue;
@@ -292,6 +365,8 @@ public class BlockService implements BlockServiceInterface {
 			}
 		}
 
+		// find all transactiosn that was sent to me
+		// and not included in my spend transactions
 		for (Block block : blockChain) {
 			List<Transaction> transactions = block.getTransactions();
 			for (Transaction tx : transactions) {
@@ -308,7 +383,12 @@ public class BlockService implements BlockServiceInterface {
 		return unspentTxs;
 	}
 
-	private Transaction findTransaction(String id) {
+	/**
+	 * Get transactio by ID
+	 * @param id the id to find the transaction
+	 * @return
+	 */
+	private Transaction getTransaction(String id) {
 		for (Transaction tx : allTransactions) {
 			if (id.equals(tx.getId())) {
 				return tx;
@@ -317,15 +397,11 @@ public class BlockService implements BlockServiceInterface {
 		return null;
 	}
 
-	private boolean verifyTransaction(Transaction tx) {
-		if (tx.isBaseTx()) {
-			return true;
-		}
-		Transaction prevTx = findTransaction(tx.getTxIn().getTxId());
-		return tx.verify(prevTx);
-	}
 
-
+	/**
+	 * Create a new Wallet, put mapping into myWalletMap
+	 * @return Wallet
+	 */
 	public Wallet createWallet() {
 		Wallet wallet = Wallet.generateWallet();
 		String address = wallet.getAddress();
@@ -335,6 +411,18 @@ public class BlockService implements BlockServiceInterface {
 	}
 
 
+
+
+
+	//********************************************************************************************************************************************
+	// Getter and Setter
+	//********************************************************************************************************************************************
+
+	/**
+	 * get Wallet Balance by address, find map in <code>myWalletMap</code> and calculate unspend outputs
+	 * @param address the Wallet address
+	 * @return balance in the wallet
+	 */
 	@Override
 	public int getWalletBalance(String address) {
 		List<Transaction> unspentTxs = findUTXOs(address);
@@ -344,52 +432,93 @@ public class BlockService implements BlockServiceInterface {
 		}
 		return balance;
 	}
+
+	/**
+	 * Getter for blockchain
+	 * @return blockchain
+	 */
 	@Override
 	public List<Block> getBlockChain() {
 		return blockChain;
 	}
 
+	/**
+	 * Setter for blockchain
+	 * @param blockChain the new blockchain
+	 */
 	@Override
 	public void setBlockChain(List<Block> blockChain) {
 		this.blockChain = blockChain;
 	}
 
+	/**
+	 * The getter for myWalletMap
+	 * @return myWalletMap
+	 */
 	@Override
 	public Map<String, Wallet> getMyWalletMap() {
 		return myWalletMap;
 	}
 
+	/**
+	 * The setter for myWalletMap
+	 * @param myWalletMap new myWalletMap
+	 */
 	@Override
 	public void setMyWalletMap(Map<String, Wallet> myWalletMap) {
 		this.myWalletMap = myWalletMap;
 	}
 
 
+	/**
+	 * The getter for Other's Wallet Map
+	 * @return Other's Wallet Map
+	 */
 	@Override
 	public Map<String, Wallet> getOtherWalletMap() {
 		return otherWalletMap;
 	}
 
+	/**
+	 * The setter for Other's Wallet Map
+	 * @param otherWalletMap Other's Wallet Map
+	 */
 	@Override
 	public void setOtherWalletMap(Map<String, Wallet> otherWalletMap) {
 		this.otherWalletMap = otherWalletMap;
 	}
 
+	/**
+	 * Getter for allTransactions
+	 * @return allTransactions
+	 */
 	@Override
 	public List<Transaction> getAllTransactions() {
 		return allTransactions;
 	}
 
+	/**
+	 * Setter for allTransactions
+	 * @param allTransactions allTransactions
+	 */
 	@Override
 	public void setAllTransactions(List<Transaction> allTransactions) {
 		this.allTransactions = allTransactions;
 	}
 
+	/**
+	 * Getter for packedTransactions
+	 * @return packedTransactions
+	 */
 	@Override
 	public List<Transaction> getPackedTransactions() {
 		return packedTransactions;
 	}
 
+	/**
+	 * Setter for packedTransactions
+	 * @param packedTransactions packedTransactions
+	 */
 	@Override
 	public void setPackedTransactions(List<Transaction> packedTransactions) {
 		this.packedTransactions = packedTransactions;
