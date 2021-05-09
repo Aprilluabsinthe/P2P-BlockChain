@@ -13,10 +13,10 @@ As indicated in the lab writeup, you have an opportunity to design and implement
 
 ## Description of tests and how to run them
 
-1. Test for...
+1. Test for local operations on block chain
 
 ```
-make test
+mvn test
 ```
 
 ## usage
