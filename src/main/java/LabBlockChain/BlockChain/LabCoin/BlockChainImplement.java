@@ -87,11 +87,11 @@ public class BlockChainImplement implements BlockChainInterface {
 	@Override
 	public boolean isValidBlock(Block curBlock, Block prevBlock) {
 		if (!prevBlock.getHash().equals(curBlock.getPreviousHash())) {
-			System.out.println("prevHash not equal to the Hash of previous Block");
+			//System.out.println("prevHash not equal to the Hash of previous Block");
 			return false;
 		}
 		else if((prevBlock.getIndex() + 1) != curBlock.getIndex()){
-			System.out.println("prev index and current index mot match");
+			//System.out.println("prev index and current index mot match");
 			return false;
 		}
 		else {
@@ -233,7 +233,7 @@ public class BlockChainImplement implements BlockChainInterface {
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
-			System.out.println("error hash：" + newBlockHash);
+			//System.out.println("error hash：" + newBlockHash);
 			nonce++;
 		}
 

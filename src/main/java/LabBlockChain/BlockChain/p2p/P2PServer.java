@@ -8,8 +8,6 @@ import java.net.InetSocketAddress;
 
 /**
  * p2pServer
- * 
- * @author aaron
  *
  */
 public class P2PServer {

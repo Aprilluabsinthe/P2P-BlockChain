@@ -26,11 +26,16 @@ import java.util.List;
  *     // ***************|____________________|*****************
  */
 public class Block {
+    /** Number of zeroes needed for a valid block */
     private final static int DIFFICULTY = 3;
     private int index;
+    /** the hash */
     private String hash;
+    /** Previous block hash */
     private String previousHash;
+    /** Generated timestamp */
     private long timestamp;
+    /** List of transactions */
     private List<Transaction> transactions;
     private int nonce;
 

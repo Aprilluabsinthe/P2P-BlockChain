@@ -9,8 +9,6 @@ import java.net.URISyntaxException;
 /**
  * p2pClient
  *
- * @author aaron
- *
  */
 public class P2PClient {
 
