@@ -5,6 +5,9 @@ import com.alibaba.fastjson.JSON;
 import LabBlockChain.BlockChain.Helper.Coder;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * tx0-
  * input output
@@ -19,6 +22,9 @@ public class Transaction {
 	private String id;
 	private TransactionInput txIn;
 	private TransactionOutput txOut;
+
+	public List<TransactionInput> inputs = new ArrayList<TransactionInput>();
+	public List<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
 
 	public Transaction() {
 		super();
@@ -171,5 +177,4 @@ public class Transaction {
 		TransactionOutput txOut = TransactionOutput.fromString(obj.ttxOut);
 		return new Transaction(txId,txIn,txOut);
 	}
-
 }

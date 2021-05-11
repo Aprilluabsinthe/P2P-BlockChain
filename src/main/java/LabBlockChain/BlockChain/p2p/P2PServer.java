@@ -13,12 +13,20 @@ import java.net.InetSocketAddress;
 public class P2PServer {
 	
 	private P2PServiceInterface p2PServiceInterface;
-	
+
+	/**
+	 * constructor for P2PServer
+	 * @param p2PServiceInterface
+	 */
 	public P2PServer(P2PServiceInterface p2PServiceInterface) {
 
 		this.p2PServiceInterface = p2PServiceInterface;
     }
 
+	/**
+	 * init server and start service
+	 * @param port the port to listen to
+	 */
 	public void initP2PServer(int port) {
 		final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
 			// call back methods
@@ -32,7 +40,8 @@ public class P2PServer {
 			}
 
 			public void onMessage(WebSocket webSocket, String msg) {
-				p2PServiceInterface.handleMessage(webSocket, msg, p2PServiceInterface.getSockets());
+				p2PServiceInterface.handleMessage(
+						webSocket, msg, p2PServiceInterface.getSockets());
 			}
 
 			public void onError(WebSocket webSocket, Exception e) {

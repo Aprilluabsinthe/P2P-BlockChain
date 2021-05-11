@@ -19,7 +19,7 @@ import com.google.gson.Gson;
  * signature
  * broadcast
  * verified and accepted by all peers
- * verify minned Node and add to blockchain
+ * verify mined Node and add to blockchain
  * be verified by enough blocks
  */
 public class BlockChainImplement implements BlockChainInterface {
@@ -345,6 +345,57 @@ public class BlockChainImplement implements BlockChainInterface {
 
 		return transaction;
 	}
+
+
+//	public boolean processTransaction() {
+//		if(verify() == false) {
+//			System.out.println("#Transaction Signature failed to verify");
+//			return false;
+//		}
+//
+//		List<Transaction> senderUTXOs = findUTXOs(sender.getAddress());
+//		//Gathers transaction inputs (Making sure they are unspent):
+//		for (Transaction senderUTXO : senderUTXOs){
+//			for(TransactionInput i : senderUTXO.inputs) {
+//				i.UTXO = NmCoin.UTXOs.get(i.transactionOutputId);
+//			}
+//		}
+//
+//		//Checks if transaction is valid:
+//		if(getInputsValue() < NmCoin.minimumTransaction) {
+//			System.out.println("Transaction Inputs too small: " + getInputsValue());
+//			System.out.println("Please enter the amount greater than " + NmCoin.minimumTransaction);
+//			return false;
+//		}
+//
+//		//Generate transaction outputs:
+//		float leftOver = getInputsValue() - value; //get value of inputs then the left over change:
+//		transactionId = calulateHash();
+//		outputs.add(new TransactionOutput( this.reciepient, value,transactionId)); //send value to recipient
+//		outputs.add(new TransactionOutput( this.sender, leftOver,transactionId)); //send the left over 'change' back to sender
+//
+//		//Add outputs to Unspent list
+//		for(TransactionOutput o : outputs) {
+//			NmCoin.UTXOs.put(o.id , o);
+//		}
+//
+//		//Remove transaction inputs from UTXO lists as spent:
+//		for(TransactionInput i : inputs) {
+//			if(i.UTXO == null) continue; //if Transaction can't be found skip it
+//			NmCoin.UTXOs.remove(i.UTXO.id);
+//		}
+//
+//		return true;
+//	}
+//
+//	public float getInputsValue() {
+//		float total = 0;
+//		for(TransactionInput i : inputs) {
+//			if(i.UTXO == null) continue; //if Transaction can't be found skip it, This behavior may not be optimal.
+//			total += i.UTXO.value;
+//		}
+//		return total;
+//	}
 
 
 	/**

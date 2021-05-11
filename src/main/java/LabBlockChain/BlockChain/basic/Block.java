@@ -39,6 +39,15 @@ public class Block {
     private List<Transaction> transactions;
     private int nonce;
 
+    /**
+     * Construction function for the Block
+     * @param index the block index
+     * @param timestamp the time the block was created
+     * @param transactions the transactions in this block
+     * @param nonce the random number
+     * @param previousHash the hash of the previous block
+     * @param hash the hash of the current block
+     */
     public Block(int index, long timestamp, List<Transaction> transactions, int nonce, String previousHash, String hash) {
         this.index = index;
         this.timestamp = timestamp;
@@ -53,30 +62,58 @@ public class Block {
     // ***************  Getter and Setter  *****************
     //******************************************************
 
+    /**
+     * Getter for Difficulty
+     * @return DIFFICULTY
+     */
     public static int getDIFFICULTY() {
         return DIFFICULTY;
     }
 
+    /**
+     * Setter for index
+     * @param index the index for the block
+     */
     public void setIndex(int index) {
         this.index = index;
     }
 
+    /**
+     * setter for The hash for the block
+     * @param hash the hash for the block
+     */
     public void setHash(String hash) {
         this.hash = hash;
     }
 
+    /**
+     * The setter for the previous hash
+     * @param previousHash the hash of the previous block
+     */
     public void setPreviousHash(String previousHash) {
         this.previousHash = previousHash;
     }
 
+    /**
+     * the setter for the timestamp
+     * @param timestamp the time it creates
+     */
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
 
+    /**
+     * set the transaction of the block
+     * @param transactions
+     */
     public void setTransactions(List<Transaction> transactions) {
         this.transactions = transactions;
     }
 
+    /**
+     * set the nonce of the block
+     * @param nonce
+     */
     public void setNonce(int nonce) {
         this.nonce = nonce;
     }

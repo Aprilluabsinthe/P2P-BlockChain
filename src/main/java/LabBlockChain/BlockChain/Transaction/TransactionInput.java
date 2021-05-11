@@ -9,6 +9,7 @@ public class TransactionInput {
 	private String signature;
 	private String publicKey;
 
+
 	public TransactionInput() {
 		super();
 	}

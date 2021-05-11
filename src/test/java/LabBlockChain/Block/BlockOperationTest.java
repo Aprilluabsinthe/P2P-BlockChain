@@ -30,12 +30,12 @@ public class BlockOperationTest {
         Wallet wallet = blockChainImplement.createWallet();
         Block block = blockChainImplement.mine(wallet.getAddress());
         blockChainImplement.addBlock(block);
-        
+
         List<Block> blockChain = blockChainImplement.getBlockChain();
         Assert.assertEquals(2, blockChain.size());
         Block lastBlock = blockChainImplement.getLatestBlock();
         String hash = lastBlock.getHash();
-        
+
         // The default difficulty level is 3
         Assert.assertTrue(hash.startsWith("000"));
 
@@ -55,4 +55,5 @@ public class BlockOperationTest {
     public void transactionTest() throws Exception {
 
     }
+
 }

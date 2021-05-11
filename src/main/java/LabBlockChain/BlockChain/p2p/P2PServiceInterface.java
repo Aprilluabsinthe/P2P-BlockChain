@@ -4,6 +4,9 @@ import org.java_websocket.WebSocket;
 
 import java.util.List;
 
+/**
+ * the abstract interface for p2p service
+ */
 public interface P2PServiceInterface {
     List<WebSocket> getSockets();
 

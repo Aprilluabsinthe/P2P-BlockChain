@@ -64,10 +64,22 @@ mvn test
   curl http://localhost:1234/transactions/get/all
   ```
 
-- All wallets(GET)
+- Query for packed Transactions(GET)
+
+  ```
+  curl http://localhost:1234/transactions/get/packed
+  ```
+
+- All wallets in this node(GET) 
 
   ```
   curl http://localhost:1234/wallet/get
+  ```
+
+- Other's Wallet Balance(GET)
+
+  ```
+  curl "http://localhost:1234/wallet/get/other"
   ```
 
 - Wallet Balance(GET)
@@ -75,3 +87,11 @@ mvn test
   ```
   curl "http://localhost:1234/wallet/get/balance?address=9555D32727BD391C0A1B3FBE6C53FDBE"
   ```
+
+- see socket peers connected(GET)
+
+  ```
+  curl http://localhost:1234/peers
+  ```
+
+

@@ -15,6 +15,7 @@ public class P2PClient {
 	private P2PServiceInterface p2PServiceInterface;
 
 	public P2PClient(P2PServiceInterface p2PServiceInterface) {
+
 		this.p2PServiceInterface = p2PServiceInterface;
     }
 
