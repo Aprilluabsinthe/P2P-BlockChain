@@ -95,7 +95,7 @@ public class Transaction {
 	public boolean verify(Transaction prevTx) {
 		if (isBaseTx()) {
 			return true;
-		} 
+		}
 
 		if (!prevTx.getId().equals(txIn.getTxId())) {
 			System.err.println("Transaction verification Failed, previous Sign not match");

@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
  *
  */
 public class P2PServer {
-	
+
 	private P2PServiceInterface p2PServiceInterface;
 
 	/**
@@ -21,7 +21,7 @@ public class P2PServer {
 	public P2PServer(P2PServiceInterface p2PServiceInterface) {
 
 		this.p2PServiceInterface = p2PServiceInterface;
-    }
+	}
 
 	/**
 	 * init server and start service

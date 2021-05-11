@@ -104,7 +104,7 @@ public class HTTPService {
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
 			Wallet wallet = blockChainOpr.createWallet();
-			Wallet[] wallets = {new Wallet(wallet.getPublicKey())}; 
+			Wallet[] wallets = {new Wallet(wallet.getPublicKey())};
 			String msg = JSON.toJSONString(
 					new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
 			p2PServiceInterface.broadcast(msg);
@@ -158,12 +158,12 @@ public class HTTPService {
 			Transaction newTransaction = blockChainOpr.createTransaction(senderWallet, recipientWallet, amount);
 			if (newTransaction == null) {
 				resp.getWriter().print(
-				        "Wallet " + sender + " Do not have enough balance (require " + amount + " LabCoin UTXO)");
+						"Wallet " + sender + " Do not have enough balance (require " + amount + " LabCoin UTXO)");
 			} else {
 				resp.getWriter().print("New Transaction:" + JSON.toJSONString(newTransaction));
-				Transaction[] txs = {newTransaction}; 
+				Transaction[] txs = {newTransaction};
 				String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON
-				        .toJSONString(txs)));
+						.toJSONString(txs)));
 				p2PServiceInterface.broadcast(msg);
 			}
 		}
@@ -242,18 +242,18 @@ public class HTTPService {
 			resp.getWriter().print("all Transactions in the Node：" + JSON.toJSONString(transactions));
 		}
 	}
-	
-    private class PeersServlet extends HttpServlet {
-        @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            resp.setCharacterEncoding("UTF-8");
-            for (WebSocket socket : p2PServiceInterface.getSockets()) {
-                InetSocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
-                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort() + "\n");
-            }
-        }
-    }
-    
+
+	private class PeersServlet extends HttpServlet {
+		@Override
+		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			resp.setCharacterEncoding("UTF-8");
+			for (WebSocket socket : p2PServiceInterface.getSockets()) {
+				InetSocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
+				resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort() + "\n");
+			}
+		}
+	}
+
 	private String getReqBody(HttpServletRequest req) throws IOException {
 		BufferedReader br = req.getReader();
 		String str, body = "";

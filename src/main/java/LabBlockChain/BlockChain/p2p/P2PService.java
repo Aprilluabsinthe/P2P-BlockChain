@@ -28,7 +28,7 @@ public class P2PService implements P2PServiceInterface {
 		this.blockChainOpr = blockChainOpr;
 		this.sockets = new ArrayList<WebSocket>();
 	}
-	
+
 	@Override
 	public List<WebSocket> getSockets() {
 		return sockets;
@@ -39,35 +39,35 @@ public class P2PService implements P2PServiceInterface {
 		try {
 			Message message = JSON.parseObject(msg, Message.class);
 			System.out.println("Received from " + webSocket.getRemoteSocketAddress().getPort() + " P2P Message "
-			        + JSON.toJSONString(message));
+					+ JSON.toJSONString(message));
 			switch (message.getType()) {
-			case 0: // get_Latest_Block
-				write(webSocket, responseLatestBlockMsg());
-				break;
-			case 1:// response Block Chain
-				write(webSocket, responseBlockChainMsg());
-				break;
-			case 2:// response Transactions
-				write(webSocket, responseTransactions());
-				break;
-			case 3:// response Packed Transactions
-				write(webSocket, responsePackedTransactions());
-				break;
-			case 4:// response Wallets
-				write(webSocket, responseWallets());
-				break;
-			case 5:// post BlockChain
-				handleBlockChainResponse(message.getData(), sockets);
-				break;
-			case 6:// post transaction
-				handleTransactionResponse(message.getData());
-				break;
-			case 7:// post Packed Transaction
-				handlePackedTransactionResponse(message.getData());
-				break;
-			case 8:// Wallet Response
-				handleWalletResponse(message.getData());
-				break;
+				case 0: // get_Latest_Block
+					write(webSocket, responseLatestBlockMsg());
+					break;
+				case 1:// response Block Chain
+					write(webSocket, responseBlockChainMsg());
+					break;
+				case 2:// response Transactions
+					write(webSocket, responseTransactions());
+					break;
+				case 3:// response Packed Transactions
+					write(webSocket, responsePackedTransactions());
+					break;
+				case 4:// response Wallets
+					write(webSocket, responseWallets());
+					break;
+				case 5:// post BlockChain
+					handleBlockChainResponse(message.getData(), sockets);
+					break;
+				case 6:// post transaction
+					handleTransactionResponse(message.getData());
+					break;
+				case 7:// post Packed Transaction
+					handlePackedTransactionResponse(message.getData());
+					break;
+				case 8:// Wallet Response
+					handleWalletResponse(message.getData());
+					break;
 			}
 		} catch (Exception e) {
 			System.out.println("P2P Message Handling Error:" + e.getMessage());
@@ -126,7 +126,7 @@ public class P2PService implements P2PServiceInterface {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
 		blockChainOpr.getAllTransactions().addAll(txs);
 	}
-	
+
 	@Override
 	public void handlePackedTransactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
@@ -253,5 +253,5 @@ public class P2PService implements P2PServiceInterface {
 		});
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
 	}
-	
+
 }

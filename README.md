@@ -13,10 +13,10 @@ As indicated in the lab writeup, you have an opportunity to design and implement
 
 ## Description of tests and how to run them
 
-1. Test for local operations on block chain
+1. Test for...
 
 ```
-mvn test
+make test
 ```
 
 ## usage
@@ -70,7 +70,7 @@ mvn test
   curl http://localhost:1234/transactions/get/packed
   ```
 
-- All wallets in this node(GET) 
+- All wallets in this node(GET)
 
   ```
   curl http://localhost:1234/wallet/get
