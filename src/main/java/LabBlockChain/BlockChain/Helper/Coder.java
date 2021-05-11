@@ -19,11 +19,9 @@ import java.util.UUID;
 /**
  * KEY_ALGORITHM = "RSA"
  * SIGNATURE_ALGORITHM = "MD5withRSA";
+ * ref: https://www.devglan.com/java8/rsa-encryption-decryption-java
  */
 public abstract class Coder {
-	private static final String PUBLIC_KEY = "RSAPublicKey";
-	private static final String PRIVATE_KEY = "RSAPrivateKey";
-
 	public static byte[] decryptBASE64(String key) throws Exception {
 		Base64.Decoder decoder = Base64.getDecoder();
 		byte[] buffer = decoder.decode(key);
@@ -37,6 +35,13 @@ public abstract class Coder {
 		return encode;
 	}
 
+	/**
+	 * ref: https://www.geeksforgeeks.org/md5-hash-in-java/
+	 * @param data
+	 * @param privateKey
+	 * @return
+	 * @throws Exception
+	 */
 	public static String MD5RSAsign(byte[] data, String privateKey) throws Exception {
 		byte[] keyBytes = decryptBASE64(privateKey);
 		PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
@@ -89,14 +94,14 @@ public abstract class Coder {
 
 
 	public static String getPrivateKey(Map<String, Object> keyMap) throws Exception {
-		Key key = (Key) keyMap.get(PRIVATE_KEY);
+		Key key = (Key) keyMap.get("RSAPrivateKey");
 
 		return encryptBASE64(key.getEncoded());
 	}
 
 
 	public static String getPublicKey(Map<String, Object> keyMap) throws Exception {
-		Key key = (Key) keyMap.get(PUBLIC_KEY);
+		Key key = (Key) keyMap.get("RSAPublicKey");
 
 		return encryptBASE64(key.getEncoded());
 	}
@@ -106,10 +111,13 @@ public abstract class Coder {
 		keyPairGen.initialize(1024);
 		KeyPair keyPair = keyPairGen.generateKeyPair();
 		RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+		java.security.Security.addProvider(
+				new org.bouncycastle.jce.provider.BouncyCastleProvider()
+		);
 		RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
 		Map<String, Object> keyMap = new HashMap<String, Object>(2);
-		keyMap.put(PUBLIC_KEY, publicKey);
-		keyMap.put(PRIVATE_KEY, privateKey);
+		keyMap.put("RSAPublicKey", publicKey);
+		keyMap.put("RSAPrivateKey", privateKey);
 		return keyMap;
 	}
 
@@ -126,52 +134,10 @@ public abstract class Coder {
 		}
 	}
 
-	public static void main(String[] args) throws Exception {
-		String text = encryptBASE64("1".getBytes("UTF-8"));
-		System.out.println(new String(decryptBASE64(text)));
-	}
-
 	public static String applySha256(String str) {
-//		MessageDigest digest = DigestUtils.getSha256Digest();
-//		String encodeStr = "";
-//		byte[] hash = new byte[0];
-//		digest = DigestUtils.getSha256Digest();
-//		byte[] hash = digest.digest(StringUtils.getBytesUtf8(str));
-//		encodeStr = Hex.encodeHexString(hash);
-
-//		MessageDigest digest = DigestUtils.getSha256Digest();
-//		byte[] hash = digest.digest(StringUtils.getBytesUtf8(input));
-//		return Hex.encodeHexString(hash);
-
-//		try {
-//			digest = DigestUtils.getSha256Digest();
-//		}catch (Exception e) {
-//			System.out.println("getSHA256 is error getSha256Digest");
-//		}
-//		try {
-//			hash = digest.digest(StringUtils.getBytesUtf8(str));
-//		}catch (Exception e) {
-//			System.out.println("str:"+str);
-//			e.printStackTrace();
-//			System.out.println("getSHA256 is error digest getBytesUtf8");
-//		}
-//		try{
-//			encodeStr = Hex.encodeHexString(hash);
-//		} catch (Exception e) {
-//			System.out.println("getSHA256 is error encodeHexString");
-//		}
-//		return encodeStr;
-		MessageDigest messageDigest;
-		String encodeStr = "";
-		try {
-			messageDigest = MessageDigest.getInstance("SHA-256");
-			messageDigest.update(str.getBytes("UTF-8"));
-			encodeStr = byte2Hex(messageDigest.digest());
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("getSHA256 is error" + e.getMessage());
-		}
-		return encodeStr;
+		MessageDigest digest = DigestUtils.getSha256Digest();
+		byte[] hash = digest.digest(StringUtils.getBytesUtf8(str));
+		return Hex.encodeHexString(hash);
 	}
 
 	private static String byte2Hex(byte[] bytes) {
@@ -187,6 +153,11 @@ public abstract class Coder {
 		return builder.toString();
 	}
 
+	/**
+	 * https://stackoverflow.com/questions/5470219/get-md5-string-from-message-digest
+	 * @param str
+	 * @return
+	 */
 	public static String decodeMD5(String str) {
 		try {
 			StringBuffer buffer = new StringBuffer();
@@ -208,5 +179,32 @@ public abstract class Coder {
 
 	public static String UUID() {
 		return UUID.randomUUID().toString().replaceAll("\\-", "");
+	}
+
+	public static byte[] decryptByPrivateKey(byte[] data, String key) throws Exception {
+		java.security.Security.addProvider(
+				new org.bouncycastle.jce.provider.BouncyCastleProvider()
+		);
+		byte[] keyBytes = decryptBASE64(key);
+		PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		Key privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
+		Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);
+		return cipher.doFinal(data);
+	}
+
+	public static byte[] encryptByPublicKey(byte[] data, String key) throws Exception {
+		java.security.Security.addProvider(
+				new org.bouncycastle.jce.provider.BouncyCastleProvider()
+		);
+		byte[] keyBytes = decryptBASE64(key);
+		X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		Key publicKey = keyFactory.generatePublic(x509KeySpec);
+		Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+		return cipher.doFinal(data);
 	}
 }

@@ -12,12 +12,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-
+/**
+ * receive message and operate according to message type
+ */
 public class P2PService implements P2PServiceInterface {
 	private List<WebSocket> sockets;
 	private BlockChainImplement blockChainOpr;
 	MessageType type;
 
+	/**
+	 * The constrcution for the service
+	 * @param blockChainOpr
+	 */
 	public P2PService(BlockChainImplement blockChainOpr) {
 		this.blockChainOpr = blockChainOpr;
 		this.sockets = new ArrayList<WebSocket>();
@@ -35,31 +41,31 @@ public class P2PService implements P2PServiceInterface {
 			System.out.println("Received from " + webSocket.getRemoteSocketAddress().getPort() + " P2P Message "
 			        + JSON.toJSONString(message));
 			switch (message.getType()) {
-			case 0:
+			case 0: // get_Latest_Block
 				write(webSocket, responseLatestBlockMsg());
 				break;
-			case 1:
+			case 1:// response Block Chain
 				write(webSocket, responseBlockChainMsg());
 				break;
-			case 2:
+			case 2:// response Transactions
 				write(webSocket, responseTransactions());
 				break;
-			case 3:
+			case 3:// response Packed Transactions
 				write(webSocket, responsePackedTransactions());
 				break;
-			case 4:
+			case 4:// response Wallets
 				write(webSocket, responseWallets());
 				break;
-			case 5:
+			case 5:// post BlockChain
 				handleBlockChainResponse(message.getData(), sockets);
 				break;
-			case 6:
+			case 6:// post transaction
 				handleTransactionResponse(message.getData());
 				break;
-			case 7:
+			case 7:// post Packed Transaction
 				handlePackedTransactionResponse(message.getData());
 				break;
-			case 8:
+			case 8:// Wallet Response
 				handleWalletResponse(message.getData());
 				break;
 			}
@@ -71,6 +77,7 @@ public class P2PService implements P2PServiceInterface {
 	@Override
 	public synchronized void handleBlockChainResponse(String message, List<WebSocket> sockets) {
 		List<Block> receiveBlockchain = JSON.parseArray(message, Block.class);
+		// self defined block compartion
 		Collections.sort(receiveBlockchain, new Comparator<Block>() {
 			public int compare(Block block1, Block block2) {
 				return block1.getIndex() - block2.getIndex();
@@ -79,16 +86,20 @@ public class P2PService implements P2PServiceInterface {
 
 		Block latestBlockReceived = receiveBlockchain.get(receiveBlockchain.size() - 1);
 		Block latestBlock = blockChainOpr.getLatestBlock();
+
 		if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
 			if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
 				System.out.println("Add new block to chain");
 				if (blockChainOpr.addBlock(latestBlockReceived)) {
 					broadcast(responseLatestBlockMsg());
 				}
-			} else if (receiveBlockchain.size() == 1) {
+			}
+			else if (receiveBlockchain.size() == 1) {
 				System.out.println("query for all blockchain");
 				broadcast(queryBlockChainMsg());
-			} else {
+			}
+			else {
+				System.out.println("Peer Blockchain longer than local, adopt.");
 				blockChainOpr.replaceChain(receiveBlockchain);
 			}
 		} else {
@@ -122,12 +133,21 @@ public class P2PService implements P2PServiceInterface {
 		blockChainOpr.getPackedTransactions().addAll(txs);
 	}
 
+	/**
+	 * write message to console
+	 * @param ws websocket
+	 * @param message the message to write
+	 */
 	@Override
 	public void write(WebSocket ws, String message) {
-		System.out.println("Send to" + ws.getRemoteSocketAddress().getPort() + "P2P Message" + message);
+		System.out.println("P2P Message" + message + "Send to port" + ws.getRemoteSocketAddress().getPort());
 		ws.send(message);
 	}
 
+	/**
+	 * broadcast to all peers
+	 * @param message the message to broad cast
+	 */
 	@Override
 	public void broadcast(String message) {
 		if (sockets.size() == 0) {
@@ -140,52 +160,88 @@ public class P2PService implements P2PServiceInterface {
 		System.out.println("======End Broadcasting");
 	}
 
+	/**
+	 * response to blockchain query
+	 * @return Message containing message type
+	 */
 	@Override
 	public String queryBlockChainMsg() {
+
 		return JSON.toJSONString(new Message(MessageType.QUERY_BLOCKCHAIN.value));
 	}
 
+	/**
+	 * response to last block query
+	 * @return Message containing message type
+	 */
 	@Override
 	public String queryLatestBlockMsg() {
+
 		return JSON.toJSONString(new Message(MessageType.QUERY_LATEST_BLOCK.value));
 	}
-	
+	/**
+	 * response to Transaction query
+	 * @return Message containing message type
+	 */
 	@Override
 	public String queryTransactionMsg() {
+
 		return JSON.toJSONString(new Message(MessageType.QUERY_TRANSACTION.value));
 	}
-	
+	/**
+	 * response to Packed Transaction query
+	 * @return Message containing message type
+	 */
 	@Override
 	public String queryPackedTransactionMsg() {
 		return JSON.toJSONString(new Message(MessageType.QUERY_PACKED_TRANSACTION.value));
 	}
-	
+	/**
+	 * response to Wallet query
+	 * @return Message containing message type
+	 */
 	@Override
 	public String queryWalletMsg() {
+
 		return JSON.toJSONString(new Message(MessageType.QUERY_WALLET.value));
 	}
-
+	/**
+	 * response to blockchain
+	 * @return Message containing message type
+	 */
 	@Override
 	public String responseBlockChainMsg() {
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blockChainOpr.getBlockChain())));
 	}
-
+	/**
+	 * response to LatestBlock
+	 * @return Message containing message type
+	 */
 	@Override
 	public String responseLatestBlockMsg() {
 		Block[] blocks = { blockChainOpr.getLatestBlock() };
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
 	}
-	
+	/**
+	 * response to Transactions
+	 * @return Message containing message type
+	 */
 	@Override
 	public String responseTransactions() {
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getAllTransactions())));
 	}
-	
+	/**
+	 * response to Packed Transactions
+	 * @return Message containing message type
+	 */
 	@Override
 	public String responsePackedTransactions() {
 		return JSON.toJSONString(new Message(MessageType.RESPONSE_PACKED_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getPackedTransactions())));
 	}
-	
+	/**
+	 * response to Wallets
+	 * @return Message containing message type
+	 */
 	@Override
 	public String responseWallets() {
 		List<Wallet> wallets = new ArrayList<Wallet>();

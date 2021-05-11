@@ -63,11 +63,11 @@ public class BlockOperationTest {
             hash = Coder.applySha256(
                     lastBlock.getPreviousHash() + gson.toJson(lastBlock.getTransactions()) + nonce
             );
-            System.out.println("nonce: "+ nonce +" hash: " +hash);
+//            System.out.println("nonce: "+ nonce +" hash: " +hash);
             if(hash.startsWith("0000")){
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                System.out.println("End of calculating hash after "+count+" times of try : ");
-                System.out.println("the correct hash is: " +hash);
+//                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+//                System.out.println("End of calculating hash after "+count+" times of try : ");
+//                System.out.println("the correct hash is: " +hash);
                 break;
             }
             nonce += 1;

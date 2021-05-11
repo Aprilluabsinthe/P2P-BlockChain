@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * https://www.baeldung.com/jetty-embedded
+ * https://stackoverflow.com/questions/2717294/create-a-simple-http-server-with-java
+ * http://avro.apache.org/docs/current/api/java/org/apache/avro/ipc/jetty/HttpServer.html
+ */
 public class HTTPService {
 	private BlockChainImplement blockChainOpr;
 	private P2PServiceInterface p2PServiceInterface;
@@ -48,7 +53,7 @@ public class HTTPService {
 			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/get/balance");
 
 			context.addServlet(new ServletHolder(new MineServlet()), "/mine");
-
+			context.addServlet(new ServletHolder(new NewTransactionArgsServlet()), "/transactions/build");
 			context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
 			context.addServlet(new ServletHolder(new GetPackedTransactionServlet()), "/transactions/get/packed");
 			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/get/unpacked");
@@ -123,6 +128,47 @@ public class HTTPService {
 		}
 	}
 
+	private class NewTransactionArgsServlet extends HttpServlet {
+		@Override
+		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			doPost(req,resp);
+		}
+		@Override
+		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+			resp.setCharacterEncoding("UTF-8");
+			String sender = req.getParameter("sender");
+			String recipient = req.getParameter("recipient");
+			int amount = Integer.parseInt(req.getParameter("amount"));
+
+			Wallet senderWallet = blockChainOpr.getMyWalletMap().get(sender);
+			// wallet can be mine or others
+			resp.getWriter().print("my Wallet ");
+			Wallet recipientWallet = blockChainOpr.getMyWalletMap().get(recipient);
+			if (recipientWallet == null) {
+				resp.getWriter().print("others' Wallet ");
+				recipientWallet = blockChainOpr.getOtherWalletMap().get(recipient);
+			}
+
+			resp.getWriter().print("Sender Wallet is: " + JSON.toJSONString(senderWallet) + " Receiver Wallet is:" + JSON.toJSONString(recipientWallet) + " amount is:" + amount + "\n");
+			if (senderWallet == null || recipientWallet == null) {
+				resp.getWriter().print("Wallet Not Exist");
+				return;
+			}
+
+			Transaction newTransaction = blockChainOpr.createTransaction(senderWallet, recipientWallet, amount);
+			if (newTransaction == null) {
+				resp.getWriter().print(
+				        "Wallet " + sender + " Do not have enough balance (require " + amount + " LabCoin UTXO)");
+			} else {
+				resp.getWriter().print("New Transaction:" + JSON.toJSONString(newTransaction));
+				Transaction[] txs = {newTransaction}; 
+				String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON
+				        .toJSONString(txs)));
+				p2PServiceInterface.broadcast(msg);
+			}
+		}
+	}
+
 	private class NewTransactionServlet extends HttpServlet {
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -149,12 +195,12 @@ public class HTTPService {
 			Transaction newTransaction = blockChainOpr.createTransaction(senderWallet, recipientWallet, amount);
 			if (newTransaction == null) {
 				resp.getWriter().print(
-				        "Wallet " + txParam.getSender() + " Do not have enough balance (require " + txParam.getAmount() + " LabCoin UTXO)");
+						"Wallet " + txParam.getSender() + " Do not have enough balance (require " + txParam.getAmount() + " LabCoin UTXO)");
 			} else {
 				resp.getWriter().print("New Transaction:" + JSON.toJSONString(newTransaction));
-				Transaction[] txs = {newTransaction}; 
+				Transaction[] txs = {newTransaction};
 				String msg = JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON
-				        .toJSONString(txs)));
+						.toJSONString(txs)));
 				p2PServiceInterface.broadcast(msg);
 			}
 		}
@@ -203,7 +249,7 @@ public class HTTPService {
             resp.setCharacterEncoding("UTF-8");
             for (WebSocket socket : p2PServiceInterface.getSockets()) {
                 InetSocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
-                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort() + "  ");
+                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort() + "\n");
             }
         }
     }

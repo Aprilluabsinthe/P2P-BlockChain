@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="demo_peer1" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="LabBlockChain.BlockChain.Main" />
+    <module name="lab-4-failurefree_yuangu_dilu" />
+    <option name="PROGRAM_PARAMETERS" value="1234 5678" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
