@@ -233,7 +233,7 @@ public class BlockChainImplement implements BlockChainInterface {
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
-			System.out.println("error hash：" + newBlockHash);
+			//System.out.println("error hash：" + newBlockHash);
 			nonce++;
 		}
 

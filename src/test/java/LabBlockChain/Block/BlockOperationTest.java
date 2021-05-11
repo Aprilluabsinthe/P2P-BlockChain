@@ -17,6 +17,8 @@ import java.util.List;
 public class BlockOperationTest {
     Gson gson = new Gson();
 
+    private static final int STRESS_TEST_TIMES = 100;
+
     @Before
     public void setUp() throws Exception {
     }
@@ -52,8 +54,43 @@ public class BlockOperationTest {
     }
 
     @Test
-    public void transactionTest() throws Exception {
+    public void stressTestLocalOperation() throws Exception {
+        BlockChainImplement blockChainImplement = new BlockChainImplement();
+        Wallet wallet = blockChainImplement.createWallet();
 
+        int expectedCnt = 1;
+
+        Block prevBlock = blockChainImplement.getLatestBlock();
+
+        for (int i = 0; i < STRESS_TEST_TIMES; ++i) {
+            Block block = blockChainImplement.mine(wallet.getAddress());
+            blockChainImplement.addBlock(block);
+            ++expectedCnt;
+
+            List<Block> blockChain = blockChainImplement.getBlockChain();
+            Assert.assertEquals(expectedCnt, blockChain.size());
+            Block lastBlock = blockChainImplement.getLatestBlock();
+            String hash = lastBlock.getHash();
+
+            // The default difficulty level is 3
+            Assert.assertTrue(hash.startsWith("000"));
+
+            String prevHash = block.getPreviousHash();
+            String prevBlockHash = prevBlock.getHash();
+
+            // make sure the chain is valid
+            Assert.assertTrue(prevHash.equals(prevBlockHash));
+            prevBlock = block;
+        }
+    }
+
+    @Test
+    public void transactionTest() {
+        BlockChainImplement blockChainImplement = new BlockChainImplement();
+        Wallet sender = blockChainImplement.createWallet();
+
+        Wallet receiver = blockChainImplement.createWallet();
+        blockChainImplement.createTransaction(sender, receiver, 20);
     }
 
 }
