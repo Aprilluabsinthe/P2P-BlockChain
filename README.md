@@ -13,17 +13,21 @@ As indicated in the lab writeup, you have an opportunity to design and implement
 
 ## Description of tests and how to run them
 
-1. Test for...
+1. Local test (on block chain operations)
 
 ```
-make test
+mvn test
 ```
+
+2. Remote test (P2P network, transaction, consistency)
 
 ## usage
 
 ### start
 ```
-/bin/zsh startServer.sh
+/bin/zsh step1_startpeer1.sh
+/bin/zsh step2_startpeer2.sh
+/bin/zsh step3_startpeer3.sh
 ```
 
 
