@@ -23,7 +23,7 @@ import com.google.gson.Gson;
  * be verified by enough blocks
  */
 public class BlockChainImplement implements BlockChainInterface {
-	private final static int SYS_REWARD = 10;
+	private final static int SYS_REWARD = 1;
 	private List<Block> blockChain = new ArrayList<Block>();
 	private Map<String, Wallet> myWalletMap = new HashMap<>();
 	private Map<String, Wallet> otherWalletMap = new HashMap<>();
