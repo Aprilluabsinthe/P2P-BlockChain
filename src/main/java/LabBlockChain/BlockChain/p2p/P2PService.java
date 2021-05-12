@@ -56,23 +56,18 @@ public class P2PService implements P2PServiceInterface {
 			switch (message.getType()) {
 				case 0: // get_Latest_Block
 					printAndSend(webSocket, generateLatestBlockResponse());
-					writeToFile(webSocket, generateLatestBlockResponse());
 					break;
 				case 1:// QUERY_BLOCKCHAIN
 					printAndSend(webSocket, generateBlockChainResponse());
-					writeToFile(webSocket, generateBlockChainResponse());
 					break;
 				case 2:// QUERY TRANSACTION
 					printAndSend(webSocket, generateTransactionsResponse());
-					writeToFile(webSocket, generateTransactionsResponse());
 					break;
 				case 3:// response Packed Transactions
 					printAndSend(webSocket, generatePackedTransactionsresponse());
-					writeToFile(webSocket, generatePackedTransactionsresponse());
 					break;
 				case 4:// response Wallets
 					printAndSend(webSocket, generateWalletsResponse());
-					writeToFile(webSocket, generateWalletsResponse());
 					break;
 				case 5:// post BlockChain
 					handleBlockChainResponse(message.getData(), sockets);
