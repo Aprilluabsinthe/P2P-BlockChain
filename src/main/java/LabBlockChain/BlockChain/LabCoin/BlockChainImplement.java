@@ -38,7 +38,7 @@ public class BlockChainImplement implements BlockChainInterface {
 	 * timestamp is current time,
 	 * transaction is null,
 	 * nouce is 1,
-	 * previous hash string ans hash string equals to 1
+	 * previous hash string and hash string equals to 1
 	 */
 	public BlockChainImplement() {
 		Block genesisBlock = new Block(
@@ -75,10 +75,10 @@ public class BlockChainImplement implements BlockChainInterface {
 
 	/**
 	 * the new Block is valid or not
-	 * the current <code>prevHash</code> should equals to the <code>hash</code> of the previous block
+	 * the current <code>prevHash</code> should equals to the <code>calculateHash</code> of the previous block
 	 * the current <code>index</code> should be the previous <code>index+1</code>
-	 * the current hash should
-	 * 1) match hash calculation: equals to the SHA256 hash of PreviousHash, Transactions, Nonce
+	 * the current calculateHash should
+	 * 1) match calculateHash calculation: equals to the SHA256 calculateHash of PreviousHash, Transactions, Nonce
 	 * 2) match Proof-of-work: start with [0] * DIFFICULTY
 	 * @param curBlock current block
 	 * @param prevBlock previous block
@@ -97,7 +97,7 @@ public class BlockChainImplement implements BlockChainInterface {
 		else {
 			String hash = calculateHash(curBlock.getPreviousHash(), curBlock.getTransactions(), curBlock.getNonce());
 			if (!hash.equals(curBlock.getHash())) {
-				System.out.println("New hash " + hash + " not match " + curBlock.getHash());
+				System.out.println("New calculated Hash " + hash + " not match " + curBlock.getHash());
 				return false;
 			}
 			if (!isValidHash(curBlock.getHash())) {
@@ -134,8 +134,8 @@ public class BlockChainImplement implements BlockChainInterface {
 	}
 
 	/**
-	 * check if hash starts with [0]*difficulty
-	 * @param hash the hash String
+	 * check if calculated Hash starts with [0]*difficulty
+	 * @param hash the calculated Hash String
 	 * @return
 	 */
 	private boolean isValidHash(String hash) {
@@ -170,7 +170,7 @@ public class BlockChainImplement implements BlockChainInterface {
 	 * @param transactions A list of Transactions
 	 * @param nonce random number
 	 * @param previousHash Hash of the previous Block
-	 * @param hash hash of the current block
+	 * @param hash calculated Hash of the current block
 	 * @return
 	 */
 	private Block createNewBlock(List<Transaction> transactions,int nonce, String previousHash, String hash) {
@@ -224,16 +224,16 @@ public class BlockChainImplement implements BlockChainInterface {
 		long start = System.currentTimeMillis();
 		System.out.println("Start Mining>>>>>>");
 
-		// mine until hash meets the requirements of PoW
+		// mine until calculated Hash meets the requirements of PoW
 		while (true) {
 			newBlockHash = calculateHash(getLatestBlock().getHash(), UTXOBlocks, nonce);
 			if (isValidHash(newBlockHash)) {
 				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
+				System.out.println("Mine Complete，correct calculateHash is：" + newBlockHash);
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
-			//System.out.println("error hash：" + newBlockHash);
+			//System.out.println("error calculated hash：" + newBlockHash);
 			nonce++;
 		}
 
