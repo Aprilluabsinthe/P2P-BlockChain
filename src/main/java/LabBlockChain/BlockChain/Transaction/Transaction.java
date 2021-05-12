@@ -57,6 +57,7 @@ public class Transaction {
 
 	/**
 	 * Setter for ID
+	 * this setter will not be called, but is required for json parse
 	 * @param id the id string
 	 */
 	public void setId(String id) {
@@ -73,6 +74,7 @@ public class Transaction {
 
 	/**
 	 * Setter for TransactionInput
+	 * this setter will not be called, but is required for json parse
 	 * @param txIn TransactionInput
 	 */
 	public void setTxIn(TransactionInput txIn) {
@@ -89,6 +91,7 @@ public class Transaction {
 
 	/**
 	 * Setter for TransactionOutput
+	 * this setter will not be called, but is required for json parse
 	 * @param txOut TransactionOutput
 	 */
 	public void setTxOut(TransactionOutput txOut) {

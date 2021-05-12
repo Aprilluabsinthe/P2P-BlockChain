@@ -43,7 +43,8 @@ public class TransactionOutput {
 	}
 
 	/**
-	 * Setter
+	 * Setter for public key hash
+	 * this setter will not be called, but is required for json parse
 	 * @param publicKeyHash
 	 */
 	public void setPublicKeyHash(String publicKeyHash) {

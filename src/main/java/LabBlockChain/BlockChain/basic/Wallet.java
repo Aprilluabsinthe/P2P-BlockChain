@@ -111,6 +111,7 @@ public class Wallet {
 
     /**
      * pubclic key setter
+     * this setter will not be called, but is required for json parse
      * @param publicKey the public key
      */
     public void setPublicKey(String publicKey) {
@@ -119,6 +120,7 @@ public class Wallet {
 
     /**
      * private key setter
+     * this setter will not be called, but is required for json parse
      * @param privateKey private key
      */
     public void setPrivateKey(String privateKey) {
