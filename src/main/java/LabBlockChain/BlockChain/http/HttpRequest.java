@@ -9,6 +9,13 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * HTTP tool class
+ * HttpRequest to send GET and POST
+ * ref:
+ * https://www.journaldev.com/7148/java-httpurlconnection-example-java-http-request-get-post
+ * https://stackoverflow.com/questions/4205980/java-sending-http-parameters-via-post-method-easily
+ */
 public class HttpRequest {
 	/**
 	 * Get method for a URL
@@ -37,7 +44,7 @@ public class HttpRequest {
 			// Returns an unmodifiable Map of the header fields.
 			Map<String, List<String>> map = connection.getHeaderFields();
 
-			// print for debug
+			// printAndSend for debug
 			for (String key : map.keySet()) {
 				System.out.println(key + "--->" + map.get(key));
 			}

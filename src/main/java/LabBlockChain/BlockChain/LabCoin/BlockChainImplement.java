@@ -23,7 +23,7 @@ import com.google.gson.Gson;
  * be verified by enough blocks
  */
 public class BlockChainImplement implements BlockChainInterface {
-	private final static int SYS_REWARD = 10;
+	private final static int SYS_REWARD = 1;
 	private List<Block> blockChain = new ArrayList<Block>();
 	private Map<String, Wallet> myWalletMap = new HashMap<>();
 	private Map<String, Wallet> otherWalletMap = new HashMap<>();
@@ -38,7 +38,7 @@ public class BlockChainImplement implements BlockChainInterface {
 	 * timestamp is current time,
 	 * transaction is null,
 	 * nouce is 1,
-	 * previous hash string ans hash string equals to 1
+	 * previous hash string and hash string equals to 1
 	 */
 	public BlockChainImplement() {
 		Block genesisBlock = new Block(
@@ -75,10 +75,10 @@ public class BlockChainImplement implements BlockChainInterface {
 
 	/**
 	 * the new Block is valid or not
-	 * the current <code>prevHash</code> should equals to the <code>hash</code> of the previous block
+	 * the current <code>prevHash</code> should equals to the <code>calculateHash</code> of the previous block
 	 * the current <code>index</code> should be the previous <code>index+1</code>
-	 * the current hash should
-	 * 1) match hash calculation: equals to the SHA256 hash of PreviousHash, Transactions, Nonce
+	 * the current calculateHash should
+	 * 1) match calculateHash calculation: equals to the SHA256 calculateHash of PreviousHash, Transactions, Nonce
 	 * 2) match Proof-of-work: start with [0] * DIFFICULTY
 	 * @param curBlock current block
 	 * @param prevBlock previous block
@@ -97,7 +97,7 @@ public class BlockChainImplement implements BlockChainInterface {
 		else {
 			String hash = calculateHash(curBlock.getPreviousHash(), curBlock.getTransactions(), curBlock.getNonce());
 			if (!hash.equals(curBlock.getHash())) {
-				System.out.println("New hash " + hash + " not match " + curBlock.getHash());
+				System.out.println("New calculated Hash " + hash + " not match " + curBlock.getHash());
 				return false;
 			}
 			if (!isValidHash(curBlock.getHash())) {
@@ -134,8 +134,8 @@ public class BlockChainImplement implements BlockChainInterface {
 	}
 
 	/**
-	 * check if hash starts with [0]*difficulty
-	 * @param hash the hash String
+	 * check if calculated Hash starts with [0]*difficulty
+	 * @param hash the calculated Hash String
 	 * @return
 	 */
 	private boolean isValidHash(String hash) {
@@ -170,7 +170,7 @@ public class BlockChainImplement implements BlockChainInterface {
 	 * @param transactions A list of Transactions
 	 * @param nonce random number
 	 * @param previousHash Hash of the previous Block
-	 * @param hash hash of the current block
+	 * @param hash calculated Hash of the current block
 	 * @return
 	 */
 	private Block createNewBlock(List<Transaction> transactions,int nonce, String previousHash, String hash) {
@@ -224,16 +224,16 @@ public class BlockChainImplement implements BlockChainInterface {
 		long start = System.currentTimeMillis();
 		System.out.println("Start Mining>>>>>>");
 
-		// mine until hash meets the requirements of PoW
+		// mine until calculated Hash meets the requirements of PoW
 		while (true) {
 			newBlockHash = calculateHash(getLatestBlock().getHash(), UTXOBlocks, nonce);
 			if (isValidHash(newBlockHash)) {
 				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
-				System.out.println("time comsumption: " + (System.currentTimeMillis() - start) + "ms");
+				System.out.println("Mine Complete，correct calculateHash is：" + newBlockHash);
+				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
-			//System.out.println("error hash：" + newBlockHash);
+			//System.out.println("error calculated hash：" + newBlockHash);
 			nonce++;
 		}
 
@@ -331,72 +331,8 @@ public class BlockChainImplement implements BlockChainInterface {
 		Transaction transaction = new Transaction(Coder.UUID(), txIn, txOut);
 		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
-
-		// transaction of exchange
-		// sennder send the exchange to it self
-//		int exchange = total - amount;
-//		TransactionInput txIn_exchange = new TransactionInput(transaction.getId(), exchange, null, sender.getPublicKey());
-//		TransactionOutput txOut_exchange = new TransactionOutput(exchange, sender.getHashPubKey());
-////		String forHashId_exchange = txIn.toString() + txOut.toString();
-//		Transaction transaction_exchange = new Transaction(CoderHelper.UUID(), txIn_exchange, txOut_exchange);
-////		Transaction transaction = new Transaction(Coder.applySha256(forHashId), txIn, txOut);
-//		transaction_exchange.MD5RSAsign(sender.getPrivateKey(), transaction);
-//		allTransactions.add(transaction_exchange);
-
 		return transaction;
 	}
-
-
-//	public boolean processTransaction() {
-//		if(verify() == false) {
-//			System.out.println("#Transaction Signature failed to verify");
-//			return false;
-//		}
-//
-//		List<Transaction> senderUTXOs = findUTXOs(sender.getAddress());
-//		//Gathers transaction inputs (Making sure they are unspent):
-//		for (Transaction senderUTXO : senderUTXOs){
-//			for(TransactionInput i : senderUTXO.inputs) {
-//				i.UTXO = NmCoin.UTXOs.get(i.transactionOutputId);
-//			}
-//		}
-//
-//		//Checks if transaction is valid:
-//		if(getInputsValue() < NmCoin.minimumTransaction) {
-//			System.out.println("Transaction Inputs too small: " + getInputsValue());
-//			System.out.println("Please enter the amount greater than " + NmCoin.minimumTransaction);
-//			return false;
-//		}
-//
-//		//Generate transaction outputs:
-//		float leftOver = getInputsValue() - value; //get value of inputs then the left over change:
-//		transactionId = calulateHash();
-//		outputs.add(new TransactionOutput( this.reciepient, value,transactionId)); //send value to recipient
-//		outputs.add(new TransactionOutput( this.sender, leftOver,transactionId)); //send the left over 'change' back to sender
-//
-//		//Add outputs to Unspent list
-//		for(TransactionOutput o : outputs) {
-//			NmCoin.UTXOs.put(o.id , o);
-//		}
-//
-//		//Remove transaction inputs from UTXO lists as spent:
-//		for(TransactionInput i : inputs) {
-//			if(i.UTXO == null) continue; //if Transaction can't be found skip it
-//			NmCoin.UTXOs.remove(i.UTXO.id);
-//		}
-//
-//		return true;
-//	}
-//
-//	public float getInputsValue() {
-//		float total = 0;
-//		for(TransactionInput i : inputs) {
-//			if(i.UTXO == null) continue; //if Transaction can't be found skip it, This behavior may not be optimal.
-//			total += i.UTXO.value;
-//		}
-//		return total;
-//	}
-
 
 	/**
 	 * Find unpacked transactions

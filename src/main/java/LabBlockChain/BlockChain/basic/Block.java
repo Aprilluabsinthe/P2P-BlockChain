@@ -9,12 +9,13 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *     //******************************************************
  *     // ***************______________________*****************
  *     // ***************|        index       |*****************
- *     // ***************|        hash        |*****************
+ *     // ***************|        calculateHash        |*****************
  *     // ***************|    previousHash    |*****************
  *     // ***************|       timestamp    |*****************
  *     // ***************|        nonce       |*****************
@@ -29,9 +30,9 @@ public class Block {
     /** Number of zeroes needed for a valid block */
     private final static int DIFFICULTY = 3;
     private int index;
-    /** the hash */
+    /** the calculateHash */
     private String hash;
-    /** Previous block hash */
+    /** Previous block calculateHash */
     private String previousHash;
     /** Generated timestamp */
     private long timestamp;
@@ -45,8 +46,8 @@ public class Block {
      * @param timestamp the time the block was created
      * @param transactions the transactions in this block
      * @param nonce the random number
-     * @param previousHash the hash of the previous block
-     * @param hash the hash of the current block
+     * @param previousHash the calculateHash of the previous block
+     * @param hash the calculateHash of the current block
      */
     public Block(int index, long timestamp, List<Transaction> transactions, int nonce, String previousHash, String hash) {
         this.index = index;
@@ -79,16 +80,16 @@ public class Block {
     }
 
     /**
-     * setter for The hash for the block
-     * @param hash the hash for the block
+     * setter for The calculateHash for the block
+     * @param hash the calculateHash for the block
      */
     public void setHash(String hash) {
         this.hash = hash;
     }
 
     /**
-     * The setter for the previous hash
-     * @param previousHash the hash of the previous block
+     * The setter for the previous calculateHash
+     * @param previousHash the calculateHash of the previous block
      */
     public void setPreviousHash(String previousHash) {
         this.previousHash = previousHash;
@@ -159,8 +160,8 @@ public class Block {
     }
 
     /**
-     * Getter for hash
-     * @return hash
+     * Getter for calculateHash
+     * @return calculateHash
      */
     public String getHash() {
         return hash;
@@ -189,7 +190,7 @@ public class Block {
 
     /**
      * SHA256 Hash for block
-     * @param block block to calculate hash
+     * @param block block to calculate calculateHash
      * @return String of Hash
      */
     public String calculateHash(Block block) {
@@ -197,5 +198,30 @@ public class Block {
         MessageDigest digest = DigestUtils.getSha256Digest();
         byte[] hash = digest.digest(StringUtils.getBytesUtf8(record));
         return Hex.encodeHexString(hash);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Block)) return false;
+        Block block = (Block) o;
+        return index == block.index && timestamp == block.timestamp && nonce == block.nonce && hash.equals(block.hash) && previousHash.equals(block.previousHash) && transactions.equals(block.transactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, hash, previousHash, timestamp, transactions, nonce);
+    }
+
+    @Override
+    public String toString() {
+        return "Block{" +
+                "index=" + index +
+                ", calculateHash='" + hash + '\'' +
+                ", previousHash='" + previousHash + '\'' +
+                ", timestamp=" + timestamp +
+                ", transactions=" + transactions +
+                ", nonce=" + nonce +
+                '}';
     }
 }

@@ -10,37 +10,39 @@ import java.util.List;
 public interface P2PServiceInterface {
     List<WebSocket> getSockets();
 
-    void handleMessage(WebSocket webSocket, String msg, List<WebSocket> sockets);
+    void messageHandler(WebSocket webSocket, String msg, List<WebSocket> sockets);
 
     void handleBlockChainResponse(String message, List<WebSocket> sockets);
 
-    void handleWalletResponse(String message);
+    void walletResponse(String message);
 
-    void handleTransactionResponse(String message);
+    void transactionResponse(String message);
 
-    void handlePackedTransactionResponse(String message);
+    void packedTransactionResponse(String message);
 
-    void write(WebSocket ws, String message);
+    void printAndSend(WebSocket ws, String message);
+
+    void writeToFile(WebSocket ws, String message);
 
     void broadcast(String message);
 
-    String queryBlockChainMsg();
+    String generateBlockChainQuery();
 
-    String queryLatestBlockMsg();
+    String generateLatestBlockQuery();
 
-    String queryTransactionMsg();
+    String GenerateTransactionQuery();
 
-    String queryPackedTransactionMsg();
+    String GeneratePackedTransactionQuery();
 
-    String queryWalletMsg();
+    String generateWalletQuery();
 
-    String responseBlockChainMsg();
+    String generateBlockChainResponse();
 
-    String responseLatestBlockMsg();
+    String generateLatestBlockResponse();
 
-    String responseTransactions();
+    String generateTransactionsResponse();
 
-    String responsePackedTransactions();
+    String generatePackedTransactionsresponse();
 
-    String responseWallets();
+    String generateWalletsResponse();
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 
 /**
+ * ref:
  * https://www.baeldung.com/jetty-embedded
  * https://stackoverflow.com/questions/2717294/create-a-simple-http-server-with-java
  * http://avro.apache.org/docs/current/api/java/org/apache/avro/ipc/jetty/HttpServer.html
@@ -45,13 +46,12 @@ public class HTTPService {
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 			context.setContextPath("/");
 			server.setHandler(context);
-
+			// register url and apis
 			context.addServlet(new ServletHolder(new ChainServlet()), "/chain");
 			context.addServlet(new ServletHolder(new CreateWalletServlet()), "/wallet/create");
 			context.addServlet(new ServletHolder(new GetWalletsServlet()), "/wallet/get");
 			context.addServlet(new ServletHolder(new GetOthersWalletsServlet()), "/wallet/get/other");
 			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/get/balance");
-
 			context.addServlet(new ServletHolder(new MineServlet()), "/mine");
 			context.addServlet(new ServletHolder(new NewTransactionArgsServlet()), "/transactions/build");
 			context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
@@ -69,7 +69,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * getBlockChain method HttpService
+	 */
 	private class ChainServlet extends HttpServlet {
+		/**
+		 * should be GET method,
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -77,7 +87,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * mine a new block, method HttpService
+	 */
 	private class MineServlet extends HttpServlet {
+		/**
+		 * Should be a POST method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -101,7 +121,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * create a new block, method HttpService
+	 */
 	private class CreateWalletServlet extends HttpServlet {
+		/**
+		 * should be POST method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -114,7 +144,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * query for wallet method http service
+	 */
 	private class GetWalletsServlet extends HttpServlet {
+		/**
+		 * should be GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -122,7 +162,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * get others' wallet http service
+	 */
 	private class GetOthersWalletsServlet extends HttpServlet {
+		/**
+		 * SHould be GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -130,11 +180,29 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * generate new transaction in a block
+	 */
 	private class NewTransactionArgsServlet extends HttpServlet {
+		/**
+		 * redirect Get method
+		 * @param req
+		 * @param resp
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			doPost(req,resp);
 		}
+
+		/**
+		 * POST method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -171,7 +239,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * create new transaction method
+	 */
 	private class NewTransactionServlet extends HttpServlet {
+		/**
+		 * POST method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -208,7 +286,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * query for balance method http service
+	 */
 	private class GetWalletBalanceServlet extends HttpServlet {
+		/**
+		 * GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -218,7 +306,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * Get Unpacked Transaction
+	 */
 	private class GetUnpackedTransactionServlet extends HttpServlet {
+		/**
+		 * should be GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -227,7 +325,18 @@ public class HTTPService {
 			resp.getWriter().print("UTXOs in the Node：" + JSON.toJSONString(transactions));
 		}
 	}
+
+	/**
+	 * Get Packed Transaction
+	 */
 	private class GetPackedTransactionServlet extends HttpServlet {
+		/**
+		 * should be GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -236,7 +345,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * Get All Transaction
+	 */
 	private class GetAllTransactionServlet extends HttpServlet{
+		/**
+		 * should be GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -245,7 +364,17 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * get peers http service
+	 */
 	private class PeersServlet extends HttpServlet {
+		/**
+		 * GET method
+		 * @param req Http Request
+		 * @param resp Http Response
+		 * @throws ServletException
+		 * @throws IOException
+		 */
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 			resp.setCharacterEncoding("UTF-8");
@@ -256,6 +385,13 @@ public class HTTPService {
 		}
 	}
 
+	/**
+	 * Reads a line of text from request
+	 * https://www.tutorialspoint.com/java/io/bufferedreader_readline.htm
+	 * @param req
+	 * @return
+	 * @throws IOException
+	 */
 	private String getReqBody(HttpServletRequest req) throws IOException {
 		BufferedReader br = req.getReader();
 		String str, body = "";

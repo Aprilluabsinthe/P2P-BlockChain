@@ -7,10 +7,13 @@ import LabBlockChain.BlockChain.LabCoin.BlockChainImplement;
 import LabBlockChain.BlockChain.basic.Wallet;
 import org.java_websocket.WebSocket;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 /**
  * receive message and operate according to message type
@@ -29,44 +32,59 @@ public class P2PService implements P2PServiceInterface {
 		this.sockets = new ArrayList<WebSocket>();
 	}
 
+	/**
+	 * get current connected peers
+	 * @return a list of peer sockets
+	 */
 	@Override
 	public List<WebSocket> getSockets() {
 		return sockets;
 	}
 
+	/**
+	 * a wrap function to deal with received messages
+	 * @param webSocket web Socket
+	 * @param msg the String raw message received
+	 * @param sockets all peer node sockets
+	 */
 	@Override
-	public void handleMessage(WebSocket webSocket, String msg, List<WebSocket> sockets) {
+	public void messageHandler(WebSocket webSocket, String msg, List<WebSocket> sockets) {
 		try {
 			Message message = JSON.parseObject(msg, Message.class);
 			System.out.println("Received from " + webSocket.getRemoteSocketAddress().getPort() + " P2P Message "
 					+ JSON.toJSONString(message));
 			switch (message.getType()) {
 				case 0: // get_Latest_Block
-					write(webSocket, responseLatestBlockMsg());
+					printAndSend(webSocket, generateLatestBlockResponse());
+					writeToFile(webSocket, generateLatestBlockResponse());
 					break;
-				case 1:// response Block Chain
-					write(webSocket, responseBlockChainMsg());
+				case 1:// QUERY_BLOCKCHAIN
+					printAndSend(webSocket, generateBlockChainResponse());
+					writeToFile(webSocket, generateBlockChainResponse());
 					break;
-				case 2:// response Transactions
-					write(webSocket, responseTransactions());
+				case 2:// QUERY TRANSACTION
+					printAndSend(webSocket, generateTransactionsResponse());
+					writeToFile(webSocket, generateTransactionsResponse());
 					break;
 				case 3:// response Packed Transactions
-					write(webSocket, responsePackedTransactions());
+					printAndSend(webSocket, generatePackedTransactionsresponse());
+					writeToFile(webSocket, generatePackedTransactionsresponse());
 					break;
 				case 4:// response Wallets
-					write(webSocket, responseWallets());
+					printAndSend(webSocket, generateWalletsResponse());
+					writeToFile(webSocket, generateWalletsResponse());
 					break;
 				case 5:// post BlockChain
 					handleBlockChainResponse(message.getData(), sockets);
 					break;
 				case 6:// post transaction
-					handleTransactionResponse(message.getData());
+					transactionResponse(message.getData());
 					break;
 				case 7:// post Packed Transaction
-					handlePackedTransactionResponse(message.getData());
+					packedTransactionResponse(message.getData());
 					break;
 				case 8:// Wallet Response
-					handleWalletResponse(message.getData());
+					walletResponse(message.getData());
 					break;
 			}
 		} catch (Exception e) {
@@ -74,41 +92,62 @@ public class P2PService implements P2PServiceInterface {
 		}
 	}
 
+	/**
+	 * Consensus
+	 * If two peers mine a block successfully, keep the two blockchains locally until one is longer than the other one. The longer one will overwrite the other’s local records until all achieve the same record.
+	 * When a peer wants to participate in the system, it will need to download all the information. When a peer has been disconnected for some time, it will need to update it’s local cache.
+	 * Compare the  global blockchain and the local blockchain.
+	 * If the last block of the received blockchain has a higher index than the local blockchain:
+	 * If the last one is exactly what the peer misses, directed add the block to local blockchain
+	 * If the peer has missed more than one block, it should broadcast and ask all peers for the longest chain. Then pull down the longest chain.
+	 * @param message raw string message to be deal with
+	 * @param sockets socket list
+	 */
 	@Override
 	public synchronized void handleBlockChainResponse(String message, List<WebSocket> sockets) {
-		List<Block> receiveBlockchain = JSON.parseArray(message, Block.class);
+		List<Block> receivedChain = JSON.parseArray(message, Block.class);
+
 		// self defined block compartion
-		Collections.sort(receiveBlockchain, new Comparator<Block>() {
+		Collections.sort(receivedChain, new Comparator<Block>() {
 			public int compare(Block block1, Block block2) {
 				return block1.getIndex() - block2.getIndex();
 			}
 		});
 
-		Block latestBlockReceived = receiveBlockchain.get(receiveBlockchain.size() - 1);
+		Block latestBlockReceived = receivedChain.get(receivedChain.size() - 1);
 		Block latestBlock = blockChainOpr.getLatestBlock();
 
+		// latest Block Received index bigger than current last, should update
 		if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
+			// the receiced is exactly the last block we need
 			if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
 				System.out.println("Add new block to chain");
 				if (blockChainOpr.addBlock(latestBlockReceived)) {
-					broadcast(responseLatestBlockMsg());
+					broadcast(generateLatestBlockResponse());
 				}
 			}
-			else if (receiveBlockchain.size() == 1) {
+			//
+			else if (receivedChain.size() == 1) {
 				System.out.println("query for all blockchain");
-				broadcast(queryBlockChainMsg());
+				broadcast(generateBlockChainQuery());
 			}
+			// more than If the peer has missed more than one block,
+			// it should broadcast and ask all peers for the longest chain. Then pull down the longest chain.
 			else {
 				System.out.println("Peer Blockchain longer than local, adopt.");
-				blockChainOpr.replaceChain(receiveBlockchain);
+				blockChainOpr.replaceChain(receivedChain);
 			}
 		} else {
 			System.out.println("Peer Blockchain no longer than local, not adopt.");
 		}
 	}
 
+	/**
+	 *
+	 * @param message
+	 */
 	@Override
-	public void handleWalletResponse(String message) {
+	public void walletResponse(String message) {
 		List<Wallet> wallets = JSON.parseArray(message, Wallet.class);
 		System.out.println("wallets wallets:" + wallets.toString() + "\n");
 		wallets.forEach(wallet -> {
@@ -121,31 +160,63 @@ public class P2PService implements P2PServiceInterface {
 		});
 	}
 
+	/**
+	 * get all transactions, includes packed and unpacked
+	 * @param message raw string message to ge deal with
+	 */
 	@Override
-	public void handleTransactionResponse(String message) {
+	public void transactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
 		blockChainOpr.getAllTransactions().addAll(txs);
 	}
 
+	/**
+	 * get packed transactions, only include packed txs
+	 * @param message raw string message to ge deal with
+	 */
 	@Override
-	public void handlePackedTransactionResponse(String message) {
+	public void packedTransactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
 		blockChainOpr.getPackedTransactions().addAll(txs);
 	}
 
 	/**
-	 * write message to console
+	 * printAndSend message to console
 	 * @param ws websocket
-	 * @param message the message to write
+	 * @param message the message to printAndSend
 	 */
 	@Override
-	public void write(WebSocket ws, String message) {
+	public void printAndSend(WebSocket ws, String message) {
 		System.out.println("P2P Message" + message + "Send to port" + ws.getRemoteSocketAddress().getPort());
 		ws.send(message);
 	}
 
 	/**
-	 * broadcast to all peers
+	 * write to file for write and debug
+	 * @param ws
+	 * @param message
+	 */
+	public void writeToFile(WebSocket ws, String message) {
+		try {
+			Path filepath = Paths.get("record.txt");
+			if(filepath == null){
+				File myObj = new File("record.txt");
+				myObj.createNewFile();
+				filepath = Paths.get("record.txt");
+			}
+
+			Files.write(filepath,"".getBytes(), StandardOpenOption.APPEND);
+		} catch (IOException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		ws.send(message);
+	}
+
+
+	/**
+	 * broadcast current message to all peers
+	 * in essense is <code>ws.send(message)</code>
 	 * @param message the message to broad cast
 	 */
 	@Override
@@ -153,11 +224,11 @@ public class P2PService implements P2PServiceInterface {
 		if (sockets.size() == 0) {
 			return;
 		}
-		System.out.println("======Start Broadcasting：");
+		System.out.println("\n>>>>>>>>>>>>>>Start Broadcasting：>>>>>>>>>>>>>>");
 		for (WebSocket socket : sockets) {
-			this.write(socket, message);
+			this.printAndSend(socket, message);
 		}
-		System.out.println("======End Broadcasting");
+		System.out.println(">>>>>>>>>>>>>>End Broadcasting>>>>>>>>>>>>>>\n");
 	}
 
 	/**
@@ -165,7 +236,7 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String queryBlockChainMsg() {
+	public String generateBlockChainQuery() {
 
 		return JSON.toJSONString(new Message(MessageType.QUERY_BLOCKCHAIN.value));
 	}
@@ -175,7 +246,7 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String queryLatestBlockMsg() {
+	public String generateLatestBlockQuery() {
 
 		return JSON.toJSONString(new Message(MessageType.QUERY_LATEST_BLOCK.value));
 	}
@@ -184,7 +255,7 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String queryTransactionMsg() {
+	public String GenerateTransactionQuery() {
 
 		return JSON.toJSONString(new Message(MessageType.QUERY_TRANSACTION.value));
 	}
@@ -193,7 +264,7 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String queryPackedTransactionMsg() {
+	public String GeneratePackedTransactionQuery() {
 		return JSON.toJSONString(new Message(MessageType.QUERY_PACKED_TRANSACTION.value));
 	}
 	/**
@@ -201,7 +272,7 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String queryWalletMsg() {
+	public String generateWalletQuery() {
 
 		return JSON.toJSONString(new Message(MessageType.QUERY_WALLET.value));
 	}
@@ -210,48 +281,56 @@ public class P2PService implements P2PServiceInterface {
 	 * @return Message containing message type
 	 */
 	@Override
-	public String responseBlockChainMsg() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blockChainOpr.getBlockChain())));
+	public String generateBlockChainResponse() {
+		return JSON.toJSONString(
+				new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blockChainOpr.getBlockChain())));
 	}
 	/**
 	 * response to LatestBlock
 	 * @return Message containing message type
 	 */
 	@Override
-	public String responseLatestBlockMsg() {
+	public String generateLatestBlockResponse() {
 		Block[] blocks = { blockChainOpr.getLatestBlock() };
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
+		return JSON.toJSONString(
+				new Message(MessageType.RESPONSE_BLOCKCHAIN.value, JSON.toJSONString(blocks)));
 	}
 	/**
 	 * response to Transactions
 	 * @return Message containing message type
 	 */
 	@Override
-	public String responseTransactions() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getAllTransactions())));
+	public String generateTransactionsResponse() {
+		return JSON.toJSONString(
+				new Message(MessageType.RESPONSE_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getAllTransactions())));
 	}
 	/**
 	 * response to Packed Transactions
 	 * @return Message containing message type
 	 */
 	@Override
-	public String responsePackedTransactions() {
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_PACKED_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getPackedTransactions())));
+	public String generatePackedTransactionsresponse() {
+		return JSON.toJSONString(
+				new Message(MessageType.RESPONSE_PACKED_TRANSACTION.value, JSON.toJSONString(blockChainOpr.getPackedTransactions())));
 	}
+
 	/**
 	 * response to Wallets
 	 * @return Message containing message type
 	 */
 	@Override
-	public String responseWallets() {
+	public String generateWalletsResponse() {
 		List<Wallet> wallets = new ArrayList<Wallet>();
+		// lambda expressions
+		// https://stackoverflow.com/questions/46898/how-do-i-efficiently-iterate-over-each-entry-in-a-java-map
 		blockChainOpr.getMyWalletMap().forEach((address, wallet) -> {
 			wallets.add(new Wallet(wallet.getPublicKey()));
 		});
 		blockChainOpr.getOtherWalletMap().forEach((address, wallet) -> {
 			wallets.add(wallet);
 		});
-		return JSON.toJSONString(new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
+		return JSON.toJSONString(
+				new Message(MessageType.RESPONSE_WALLET.value, JSON.toJSONString(wallets)));
 	}
 
 }
