@@ -38,7 +38,7 @@ public class HTTPService {
 		this.p2PServiceInterface = p2PServiceInterface;
 	}
 
-	public void initHTTPServer(int port) {
+	public void initHTTPServer(int port, boolean runInBackground) {
 		try {
 			Server server = new Server(port);
 			System.out.println("listening LabBlockChain.http port on: " + port);
@@ -61,7 +61,9 @@ public class HTTPService {
 			context.addServlet(new ServletHolder(new PeersServlet()), "/peers");
 
 			server.start();
-			server.join();
+			if (!runInBackground) {
+				server.join();
+			}
 		} catch (Exception e) {
 			System.out.println("init LabBlockChain.basic.BlockChain.http server is error:" + e.getMessage());
 		}

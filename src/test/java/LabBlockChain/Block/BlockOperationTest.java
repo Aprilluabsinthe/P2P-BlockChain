@@ -83,14 +83,4 @@ public class BlockOperationTest {
             prevBlock = block;
         }
     }
-
-    @Test
-    public void transactionTest() {
-        BlockChainImplement blockChainImplement = new BlockChainImplement();
-        Wallet sender = blockChainImplement.createWallet();
-
-        Wallet receiver = blockChainImplement.createWallet();
-        blockChainImplement.createTransaction(sender, receiver, 20);
-    }
-
 }

@@ -230,7 +230,7 @@ public class BlockChainImplement implements BlockChainInterface {
 			if (isValidHash(newBlockHash)) {
 				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 				System.out.println("Mine Complete，correct hash is：" + newBlockHash);
-				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
+				System.out.println("time comsumption: " + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
 			//System.out.println("error hash：" + newBlockHash);
