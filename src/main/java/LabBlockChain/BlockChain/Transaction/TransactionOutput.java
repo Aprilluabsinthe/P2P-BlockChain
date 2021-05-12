@@ -8,7 +8,14 @@ import com.google.gson.Gson;
  * A TransactionOutput contains value and a scriptPubKey that controls who is able to spend its value.
  */
 public class TransactionOutput {
+	/**
+	 * the value of this UTXO
+	 */
 	private int value;
+
+	/**
+	 * the scripted public key of this receiver
+	 */
 	private String publicKeyHash;
 
 	/**

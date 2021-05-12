@@ -22,8 +22,17 @@ import java.util.Objects;
  * for simplicity, here only one-to-one relationship
  */
 public class Transaction {
+	/**
+	 * the globally globally unique ID, AKA UUID
+	 */
 	private String id;
+	/**
+	 * transaction input, indicate the input source of this transaction
+	 */
 	private TransactionInput txIn;
+	/**
+	 * transaction output, indicate the UTXO of this transaction
+	 */
 	private TransactionOutput txOut;
 
 	// for futher improve the transactions
