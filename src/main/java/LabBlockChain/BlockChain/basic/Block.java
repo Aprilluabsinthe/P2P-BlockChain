@@ -9,6 +9,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *     //******************************************************
@@ -197,5 +198,30 @@ public class Block {
         MessageDigest digest = DigestUtils.getSha256Digest();
         byte[] hash = digest.digest(StringUtils.getBytesUtf8(record));
         return Hex.encodeHexString(hash);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Block)) return false;
+        Block block = (Block) o;
+        return index == block.index && timestamp == block.timestamp && nonce == block.nonce && hash.equals(block.hash) && previousHash.equals(block.previousHash) && transactions.equals(block.transactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, hash, previousHash, timestamp, transactions, nonce);
+    }
+
+    @Override
+    public String toString() {
+        return "Block{" +
+                "index=" + index +
+                ", hash='" + hash + '\'' +
+                ", previousHash='" + previousHash + '\'' +
+                ", timestamp=" + timestamp +
+                ", transactions=" + transactions +
+                ", nonce=" + nonce +
+                '}';
     }
 }

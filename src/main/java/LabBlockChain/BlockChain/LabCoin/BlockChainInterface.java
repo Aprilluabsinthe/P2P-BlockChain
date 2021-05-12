@@ -7,6 +7,9 @@ import LabBlockChain.BlockChain.basic.Wallet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * the interface for block chain service
+ */
 public interface BlockChainInterface {
     Block getLatestBlock();
 

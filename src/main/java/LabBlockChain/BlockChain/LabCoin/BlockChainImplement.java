@@ -233,7 +233,7 @@ public class BlockChainImplement implements BlockChainInterface {
 				System.out.println("time comsumption" + (System.currentTimeMillis() - start) + "ms");
 				break;
 			}
-			System.out.println("error hash：" + newBlockHash);
+			//System.out.println("error hash：" + newBlockHash);
 			nonce++;
 		}
 
@@ -331,72 +331,8 @@ public class BlockChainImplement implements BlockChainInterface {
 		Transaction transaction = new Transaction(Coder.UUID(), txIn, txOut);
 		transaction.sign(sender.getPrivateKey(), prevTx);
 		allTransactions.add(transaction);
-
-		// transaction of exchange
-		// sennder send the exchange to it self
-//		int exchange = total - amount;
-//		TransactionInput txIn_exchange = new TransactionInput(transaction.getId(), exchange, null, sender.getPublicKey());
-//		TransactionOutput txOut_exchange = new TransactionOutput(exchange, sender.getHashPubKey());
-////		String forHashId_exchange = txIn.toString() + txOut.toString();
-//		Transaction transaction_exchange = new Transaction(CoderHelper.UUID(), txIn_exchange, txOut_exchange);
-////		Transaction transaction = new Transaction(Coder.applySha256(forHashId), txIn, txOut);
-//		transaction_exchange.MD5RSAsign(sender.getPrivateKey(), transaction);
-//		allTransactions.add(transaction_exchange);
-
 		return transaction;
 	}
-
-
-//	public boolean processTransaction() {
-//		if(verify() == false) {
-//			System.out.println("#Transaction Signature failed to verify");
-//			return false;
-//		}
-//
-//		List<Transaction> senderUTXOs = findUTXOs(sender.getAddress());
-//		//Gathers transaction inputs (Making sure they are unspent):
-//		for (Transaction senderUTXO : senderUTXOs){
-//			for(TransactionInput i : senderUTXO.inputs) {
-//				i.UTXO = NmCoin.UTXOs.get(i.transactionOutputId);
-//			}
-//		}
-//
-//		//Checks if transaction is valid:
-//		if(getInputsValue() < NmCoin.minimumTransaction) {
-//			System.out.println("Transaction Inputs too small: " + getInputsValue());
-//			System.out.println("Please enter the amount greater than " + NmCoin.minimumTransaction);
-//			return false;
-//		}
-//
-//		//Generate transaction outputs:
-//		float leftOver = getInputsValue() - value; //get value of inputs then the left over change:
-//		transactionId = calulateHash();
-//		outputs.add(new TransactionOutput( this.reciepient, value,transactionId)); //send value to recipient
-//		outputs.add(new TransactionOutput( this.sender, leftOver,transactionId)); //send the left over 'change' back to sender
-//
-//		//Add outputs to Unspent list
-//		for(TransactionOutput o : outputs) {
-//			NmCoin.UTXOs.put(o.id , o);
-//		}
-//
-//		//Remove transaction inputs from UTXO lists as spent:
-//		for(TransactionInput i : inputs) {
-//			if(i.UTXO == null) continue; //if Transaction can't be found skip it
-//			NmCoin.UTXOs.remove(i.UTXO.id);
-//		}
-//
-//		return true;
-//	}
-//
-//	public float getInputsValue() {
-//		float total = 0;
-//		for(TransactionInput i : inputs) {
-//			if(i.UTXO == null) continue; //if Transaction can't be found skip it, This behavior may not be optimal.
-//			total += i.UTXO.value;
-//		}
-//		return total;
-//	}
-
 
 	/**
 	 * Find unpacked transactions

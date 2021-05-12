@@ -12,6 +12,7 @@ import java.net.InetSocketAddress;
  */
 public class P2PServer {
 
+	// command interface
 	private P2PServiceInterface p2PServiceInterface;
 
 	/**
@@ -29,21 +30,46 @@ public class P2PServer {
 	 */
 	public void initP2PServer(int port) {
 		final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
-			// call back methods
+			/**
+			 * Callback hook for open
+			 * @param webSocket  Web Socket
+			 * @param clientHandshake Client Handshake
+			 */
+			@Override
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
 				p2PServiceInterface.getSockets().add(webSocket);
 			}
 
-			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
+			/**
+			 * Callback hook for close
+			 * @param webSocket web Socket
+			 * @param i
+			 * @param msg
+			 * @param b
+			 */
+			@Override
+			public void onClose(WebSocket webSocket, int i, String msg, boolean b) {
 				System.out.println("connection failed to peer:" + webSocket.getRemoteSocketAddress());
 				p2PServiceInterface.getSockets().remove(webSocket);
 			}
 
+			/**
+			 * Callback hook for sending message
+			 * @param webSocket
+			 * @param msg reason for message
+			 */
+			@Override
 			public void onMessage(WebSocket webSocket, String msg) {
-				p2PServiceInterface.handleMessage(
+				p2PServiceInterface.messageHandler(
 						webSocket, msg, p2PServiceInterface.getSockets());
 			}
 
+			/**
+			 * Callback hook for error
+			 * @param webSocket web Socket
+			 * @param e
+			 */
+			@Override
 			public void onError(WebSocket webSocket, Exception e) {
 				System.out.println("connection failed to peer:" + webSocket.getRemoteSocketAddress());
 				p2PServiceInterface.getSockets().remove(webSocket);

@@ -37,8 +37,8 @@ public abstract class Coder {
 
 	/**
 	 * ref: https://www.geeksforgeeks.org/md5-hash-in-java/
-	 * @param data
-	 * @param privateKey
+	 * @param data the data to sign
+	 * @param privateKey privateKey
 	 * @return
 	 * @throws Exception
 	 */
@@ -53,6 +53,13 @@ public abstract class Coder {
 		return encryptBASE64(signature.sign());
 	}
 
+	/**
+	 * ECDSA signature
+	 * ref: https://stackoverflow.com/questions/11339788/tutorial-of-ecdsa-algorithm-to-sign-a-string
+	 * @param privateKey the pprivate key
+	 * @param input the string to sign
+	 * @return
+	 */
 	public static byte[] applyECDSASig(PrivateKey privateKey, String input) {
 		Signature dsa;
 		byte[] output = new byte[0];
@@ -69,6 +76,13 @@ public abstract class Coder {
 		return output;
 	}
 
+	/**
+	 * The verification for ECDSA signature
+	 * @param publicKey publicKey
+	 * @param data the string to sign
+	 * @param signature the signature to verify
+	 * @return
+	 */
 	public static boolean verifyECDSASig(PublicKey publicKey, String data, byte[] signature) {
 		try {
 			Signature ecdsaVerify = Signature.getInstance("ECDSA", "BC");
@@ -81,7 +95,15 @@ public abstract class Coder {
 	}
 
 
-	public static boolean verify(byte[] data, String publicKey, String sign) throws Exception {
+	/**
+	 * verify the passes in MD5 RSA signature
+	 * @param data the hash data
+	 * @param publicKey publicKey
+	 * @param sign sign to verify
+	 * @return
+	 * @throws Exception
+	 */
+	public static boolean MD5RSAverify(byte[] data, String publicKey, String sign) throws Exception {
 		byte[] keyBytes = decryptBASE64(publicKey);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -93,19 +115,35 @@ public abstract class Coder {
 	}
 
 
+	/**
+	 * get the private key from the key pair
+	 * @param keyMap the key pair map "RSAPublicKey", "RSAPrivateKey"
+	 * @return PrivateKey
+	 * @throws Exception
+	 */
 	public static String getPrivateKey(Map<String, Object> keyMap) throws Exception {
 		Key key = (Key) keyMap.get("RSAPrivateKey");
 
 		return encryptBASE64(key.getEncoded());
 	}
 
-
+	/**
+	 * get the private key from the key pair
+	 * @param keyMap the key pair map "RSAPublicKey", "RSAPrivateKey"
+	 * @return PublicKey
+	 * @throws Exception
+	 */
 	public static String getPublicKey(Map<String, Object> keyMap) throws Exception {
 		Key key = (Key) keyMap.get("RSAPublicKey");
 
 		return encryptBASE64(key.getEncoded());
 	}
 
+	/**
+	 * generate initialkey pair
+	 * @return the key pair map "RSAPublicKey", "RSAPrivateKey"
+	 * @throws Exception
+	 */
 	public static Map<String, Object> generateInitKey() throws Exception {
 		KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
 		keyPairGen.initialize(1024);
@@ -121,6 +159,9 @@ public abstract class Coder {
 		return keyMap;
 	}
 
+	/**
+	 * generate initial ECDSA Key Pair
+	 */
 	public void generateECDSAKeyPair() {
 		try {
 			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA","BC");
@@ -134,27 +175,22 @@ public abstract class Coder {
 		}
 	}
 
+	/**
+	 * the main SHA256 hash function
+	 * @param str
+	 * @return
+	 */
 	public static String applySha256(String str) {
 		MessageDigest digest = DigestUtils.getSha256Digest();
 		byte[] hash = digest.digest(StringUtils.getBytesUtf8(str));
 		return Hex.encodeHexString(hash);
 	}
 
-	private static String byte2Hex(byte[] bytes) {
-		StringBuilder builder = new StringBuilder();
-		String temp;
-		for (int i = 0; i < bytes.length; i++) {
-			temp = Integer.toHexString(bytes[i] & 0xFF);
-			if (temp.length() == 1) {
-				builder.append("0");
-			}
-			builder.append(temp);
-		}
-		return builder.toString();
-	}
 
 	/**
+	 * get MD5 from a string
 	 * https://stackoverflow.com/questions/5470219/get-md5-string-from-message-digest
+	 * https://www.codejava.net/coding/how-to-calculate-md5-and-sha-hash-values-in-java
 	 * @param str
 	 * @return
 	 */
@@ -177,10 +213,23 @@ public abstract class Coder {
 		return null;
 	}
 
+	/**
+	 * generate a 4 (pseudo randomly generated) global unique UUID.
+	 * https://www.uuidgenerator.net/dev-corner/java
+	 * @return
+	 */
 	public static String UUID() {
+
 		return UUID.randomUUID().toString().replaceAll("\\-", "");
 	}
 
+	/**
+	 * decrypt By 'RSA' PrivateKey
+	 * @param data data to decrypt
+	 * @param key private key
+	 * @return
+	 * @throws Exception
+	 */
 	public static byte[] decryptByPrivateKey(byte[] data, String key) throws Exception {
 		java.security.Security.addProvider(
 				new org.bouncycastle.jce.provider.BouncyCastleProvider()
@@ -194,6 +243,13 @@ public abstract class Coder {
 		return cipher.doFinal(data);
 	}
 
+	/**
+	 * encrypt By PublicKey
+	 * @param data data to decrypt
+	 * @param key
+	 * @return PublicKey
+	 * @throws Exception
+	 */
 	public static byte[] encryptByPublicKey(byte[] data, String key) throws Exception {
 		java.security.Security.addProvider(
 				new org.bouncycastle.jce.provider.BouncyCastleProvider()

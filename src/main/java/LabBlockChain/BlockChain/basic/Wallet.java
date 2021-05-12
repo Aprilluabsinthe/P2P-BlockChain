@@ -51,28 +51,52 @@ public class Wallet {
         return null;
     }
 
+    /**
+     * public key getter
+     * @return the public key
+     */
     public String getPublicKey() {
         return publicKey;
     }
 
+    /**
+     * private key getter
+     * @return the private key
+     */
     public String getPrivateKey() {
         return privateKey;
     }
 
+    /**
+     * address getter
+     * @return the address
+     */
     public String getAddress() {
         String publicKeyHash = hashPubKey(publicKey);
         return Coder.decodeMD5(publicKeyHash);
     }
 
+    /**
+     * address getter
+     * @return the address
+     */
     public static String getAddress(String publicKey) {
         String publicKeyHash = hashPubKey(publicKey);
         return Coder.decodeMD5(publicKeyHash);
     }
 
+    /**
+     * hash key getter
+     * @return the hash key
+     */
     public String getHashPubKey() {
         return Coder.applySha256(publicKey);
     }
 
+    /**
+     * hash key getter
+     * @return the hash key
+     */
     public static String hashPubKey(String publicKey) {
         return Coder.applySha256(publicKey);
     }
@@ -85,10 +109,18 @@ public class Wallet {
                 '}';
     }
 
+    /**
+     * pubclic key setter
+     * @param publicKey the public key
+     */
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
     }
 
+    /**
+     * private key setter
+     * @param privateKey private key
+     */
     public void setPrivateKey(String privateKey) {
         this.privateKey = privateKey;
     }

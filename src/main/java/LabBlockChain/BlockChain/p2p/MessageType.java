@@ -1,5 +1,8 @@
 package LabBlockChain.BlockChain.p2p;
 
+/**
+ * the wrapped message type in p2p message exchanging and serlization process
+ */
 public enum MessageType {
     QUERY_LATEST_BLOCK(0),
     QUERY_BLOCKCHAIN(1),
@@ -13,6 +16,10 @@ public enum MessageType {
 
     public int value;
 
+    /**
+     * set value for each type
+     * @param value
+     */
     MessageType(int value) {
         this.value = value;
     }

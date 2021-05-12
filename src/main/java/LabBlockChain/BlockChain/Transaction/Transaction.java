@@ -106,7 +106,7 @@ public class Transaction {
 
 		boolean result = false;
 		try {
-			result = Coder.verify(txClone.hash().getBytes(), txIn.getPublicKey(), txIn.getSignature());
+			result = Coder.MD5RSAverify(txClone.hash().getBytes(), txIn.getPublicKey(), txIn.getSignature());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
