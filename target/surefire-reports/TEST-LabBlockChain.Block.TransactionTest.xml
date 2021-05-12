@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="1" failures="0" name="LabBlockChain.Block.TransactionTest" time="1.517" errors="0" skipped="0">
+<testsuite tests="1" failures="0" name="LabBlockChain.Block.TransactionTest" time="2.391" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="java.vm.version" value="15.0.2+7"/>
@@ -57,5 +57,5 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
   </properties>
-  <testcase classname="LabBlockChain.Block.TransactionTest" name="transactionAPITest" time="1.517"/>
+  <testcase classname="LabBlockChain.Block.TransactionTest" name="transactionAPITest" time="2.391"/>
 </testsuite>

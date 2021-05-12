@@ -5,11 +5,11 @@ As indicated in the lab writeup, you have an opportunity to design and implement
 
 ## Description of project topic, goals, and tasks
 
-...
+See proposal and report for details
 
 ## Dependencies to run this code
 
-...
+Java, Maven
 
 ## Description of tests and how to run them
 
@@ -98,4 +98,9 @@ mvn test
   curl http://localhost:1234/peers
   ```
 
+## How to generate doc
 
+```
+  mvn javadoc:javadoc
+```
+Then go to /target/site/apidocs/index.html
