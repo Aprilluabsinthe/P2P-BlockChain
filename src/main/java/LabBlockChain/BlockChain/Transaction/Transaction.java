@@ -23,6 +23,7 @@ public class Transaction {
 	private TransactionInput txIn;
 	private TransactionOutput txOut;
 
+	// for futher improve the transactions
 	public List<TransactionInput> inputs = new ArrayList<TransactionInput>();
 	public List<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
 
@@ -30,6 +31,12 @@ public class Transaction {
 		super();
 	}
 
+	/**
+	 * contructor
+	 * @param id
+	 * @param txIn
+	 * @param txOut
+	 */
 	public Transaction(String id, TransactionInput txIn, TransactionOutput txOut) {
 		super();
 		this.id = id;
